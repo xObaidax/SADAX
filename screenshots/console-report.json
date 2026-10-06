@@ -1,0 +1,456 @@
+{
+  "generatedAt": "2026-10-02T23:15:21.385Z",
+  "target": "file:///C:/Users/alkas/Desktop/mchari3%20kasa%20-%20codex/html/index.test.html",
+  "localStorageKeys": {
+    "theme": "vocaflow_theme",
+    "language": "vocaflow_locale"
+  },
+  "scenarios": [
+    {
+      "name": "mobile-light-en",
+      "width": 375,
+      "height": 812,
+      "theme": "light",
+      "language": "en",
+      "screenshots": [
+        "screenshots\\mobile-light-en.png"
+      ],
+      "consoleMessages": [
+        {
+          "stage": "initial load",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "initial load",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported.",
+          "expectedBackendFailure": true
+        }
+      ],
+      "pageErrors": [],
+      "failedNetworkRequests": [
+        {
+          "stage": "initial load",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        }
+      ],
+      "expectedBackendFailures": [
+        {
+          "stage": "reload",
+          "source": "console",
+          "error": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported."
+        }
+      ],
+      "navigationErrors": [],
+      "dom": {
+        "mounted": true,
+        "rootChildren": 2,
+        "htmlLang": "en",
+        "htmlDir": "ltr",
+        "theme": "light",
+        "viewportWidth": 375,
+        "documentWidth": 375,
+        "bodyHeight": 1046,
+        "navigationButtons": [
+          "Games",
+          "Stats",
+          "Settings"
+        ]
+      }
+    },
+    {
+      "name": "tablet-light-en",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "language": "en",
+      "screenshots": [
+        "screenshots\\tablet-light-en.png"
+      ],
+      "consoleMessages": [
+        {
+          "stage": "initial load",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "initial load",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported.",
+          "expectedBackendFailure": true
+        }
+      ],
+      "pageErrors": [],
+      "failedNetworkRequests": [
+        {
+          "stage": "initial load",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        }
+      ],
+      "expectedBackendFailures": [
+        {
+          "stage": "reload",
+          "source": "console",
+          "error": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported."
+        }
+      ],
+      "navigationErrors": [],
+      "dom": {
+        "mounted": true,
+        "rootChildren": 2,
+        "htmlLang": "en",
+        "htmlDir": "ltr",
+        "theme": "light",
+        "viewportWidth": 768,
+        "documentWidth": 768,
+        "bodyHeight": 1106,
+        "navigationButtons": [
+          "Games",
+          "Stats",
+          "Settings"
+        ]
+      }
+    },
+    {
+      "name": "desktop-light-en",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "language": "en",
+      "screenshots": [
+        "screenshots\\desktop-light-en.png",
+        "screenshots\\desktop-light-en-stats.png",
+        "screenshots\\desktop-light-en-settings.png"
+      ],
+      "consoleMessages": [
+        {
+          "stage": "initial load",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "initial load",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported.",
+          "expectedBackendFailure": true
+        }
+      ],
+      "pageErrors": [],
+      "failedNetworkRequests": [
+        {
+          "stage": "initial load",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        }
+      ],
+      "expectedBackendFailures": [
+        {
+          "stage": "reload",
+          "source": "console",
+          "error": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported."
+        }
+      ],
+      "navigationErrors": [],
+      "dom": {
+        "mounted": true,
+        "rootChildren": 2,
+        "htmlLang": "en",
+        "htmlDir": "ltr",
+        "theme": "light",
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyHeight": 1054,
+        "navigationButtons": [
+          "Games",
+          "Stats",
+          "Settings"
+        ]
+      }
+    },
+    {
+      "name": "desktop-dark-en",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "language": "en",
+      "screenshots": [
+        "screenshots\\desktop-dark-en.png"
+      ],
+      "consoleMessages": [
+        {
+          "stage": "initial load",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "initial load",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported.",
+          "expectedBackendFailure": true
+        }
+      ],
+      "pageErrors": [],
+      "failedNetworkRequests": [
+        {
+          "stage": "initial load",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        }
+      ],
+      "expectedBackendFailures": [
+        {
+          "stage": "reload",
+          "source": "console",
+          "error": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported."
+        }
+      ],
+      "navigationErrors": [],
+      "dom": {
+        "mounted": true,
+        "rootChildren": 2,
+        "htmlLang": "en",
+        "htmlDir": "ltr",
+        "theme": "dark",
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyHeight": 1054,
+        "navigationButtons": [
+          "Games",
+          "Stats",
+          "Settings"
+        ]
+      }
+    },
+    {
+      "name": "desktop-light-ar",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "language": "ar",
+      "screenshots": [
+        "screenshots\\desktop-light-ar.png"
+      ],
+      "consoleMessages": [
+        {
+          "stage": "initial load",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "initial load",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported.",
+          "expectedBackendFailure": true
+        }
+      ],
+      "pageErrors": [],
+      "failedNetworkRequests": [
+        {
+          "stage": "initial load",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        }
+      ],
+      "expectedBackendFailures": [
+        {
+          "stage": "reload",
+          "source": "console",
+          "error": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported."
+        }
+      ],
+      "navigationErrors": [],
+      "dom": {
+        "mounted": true,
+        "rootChildren": 2,
+        "htmlLang": "ar",
+        "htmlDir": "rtl",
+        "theme": "light",
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyHeight": 1053,
+        "navigationButtons": [
+          "الألعاب",
+          "الإحصائيات",
+          "الإعدادات"
+        ]
+      }
+    },
+    {
+      "name": "desktop-dark-ar",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "language": "ar",
+      "screenshots": [
+        "screenshots\\desktop-dark-ar.png"
+      ],
+      "consoleMessages": [
+        {
+          "stage": "initial load",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "initial load",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "type": "warning",
+          "text": "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+        },
+        {
+          "stage": "reload",
+          "type": "error",
+          "text": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported.",
+          "expectedBackendFailure": true
+        }
+      ],
+      "pageErrors": [],
+      "failedNetworkRequests": [
+        {
+          "stage": "initial load",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        },
+        {
+          "stage": "reload",
+          "url": "https://accounts.google.com/gsi/client",
+          "error": "net::ERR_NETWORK_ACCESS_DENIED"
+        }
+      ],
+      "expectedBackendFailures": [
+        {
+          "stage": "reload",
+          "source": "console",
+          "error": "Fetch API cannot load file:///C:/auth/me/. URL scheme \"file\" is not supported."
+        }
+      ],
+      "navigationErrors": [],
+      "dom": {
+        "mounted": true,
+        "rootChildren": 2,
+        "htmlLang": "ar",
+        "htmlDir": "rtl",
+        "theme": "dark",
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyHeight": 1053,
+        "navigationButtons": [
+          "الألعاب",
+          "الإحصائيات",
+          "الإعدادات"
+        ]
+      }
+    }
+  ]
+}

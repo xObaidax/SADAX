@@ -1,0 +1,7 @@
+Django>=5.2,<6.0
+gunicorn>=23,<24
+whitenoise[brotli]>=6.9,<7
+psycopg2-binary>=2.9,<3
+dj-database-url>=2.3,<3
+google-auth>=2,<3
+requests>=2,<3
