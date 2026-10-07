@@ -116,11 +116,11 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
               <SpeakerIcon active={speaking} />
             </button>
           </div>
-          <div className="card-lang-label">{showTranslation ? `${l2.flag} ${l2.name}` : `${l1.flag} ${l1.name}`}</div>
+          <div className="card-lang-label"><UiIcon name="globe" size={15} /> {showTranslation ? l2.name : l1.name}</div>
           <div className={showTranslation ? "card-translation" : "card-word"} dir={showTranslation ? l2.dir : l1.dir} lang={showTranslation ? (card.lang2 || set.lang2) : (card.lang1 || set.lang1)}>
             {showTranslation ? card.translation : card.word}
           </div>
-          <div className="card-hint">✨ {t("tapToFlip")}</div>
+          <div className="card-hint"><SparkleIcon size={16} /> {t("tapToFlip")}</div>
         </div>
       </div>
       <div className="card-dots">
@@ -258,7 +258,7 @@ function SpellingGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
           <button type="button" className="icon-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onClick={(e) => { e.stopPropagation(); onToggleSaved(card.id); }}><BookmarkIcon filled={isSaved} /></button>
           <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(card.translation, set.lang2); }}><SpeakerIcon /></button>
         </div>
-        <div style={{marginTop: 30, fontSize: 13, color: "var(--text-light)", fontWeight: 600}}>{l2.flag} {t("listenWrite")}</div>
+        <div style={{marginTop: 30, fontSize: 13, color: "var(--text-light)", fontWeight: 600}}><UiIcon name="globe" size={16} /> {t("listenWrite")}</div>
         <div className="spelling-translation" dir={l2.dir} lang={card.lang2 || set.lang2}>{card.translation}</div>
       </div>
       <input className={`spelling-input ${msg || ""}`} value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => { if (e.key === "Enter") submit(); }} placeholder={t("typeWord")} disabled={!!msg} autoFocus />
@@ -266,6 +266,15 @@ function SpellingGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
       {msg === "correct" && (<div style={{ textAlign: "center", color: "var(--success)", fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><CheckIcon size={16} color="#2D6A4F" /></div>)}
       <button type="button" className="btn btn-primary btn-block btn-lg" onClick={submit} disabled={!val.trim() || !!msg}>{t("check")}</button>
     </div>
+  );
+}
+
+function MatchWordButton({ item, side, text, lang, dir, isSelected, isGreen, isWrong, onSelect, onOpen }) {
+  const pressHandlers = useLongPress(() => onOpen(item, side), onSelect, 500);
+  return (
+    <button type="button" className={`match-word ${isSelected ? "selected" : ""} ${isGreen ? "green-flash" : ""} ${isWrong ? "wrong-flash" : ""}`} aria-pressed={isSelected} dir={dir} lang={lang} {...pressHandlers}>
+      {text}
+    </button>
   );
 }
 
@@ -283,6 +292,13 @@ function MatchingGame({ set, savedIds, onToggleSaved, onFinish, onExit, onReview
   const [greenFlashIds, setGreenFlashIds] = useState([]);
   const [wrongFlashIds, setWrongFlashIds] = useState([]);
   const [results, setResults] = useState([]);
+  const [wordCard, setWordCard] = useState(null);
+  useEffect(() => {
+    if (!wordCard) return;
+    const closeOnEscape = e => { if (e.key === "Escape") setWordCard(null); };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [wordCard]);
   useEffect(() => {
     if (!selA || !selB) return;
     const ok = selA.id === selB.id;
@@ -326,13 +342,7 @@ function MatchingGame({ set, savedIds, onToggleSaved, onFinish, onExit, onReview
               const isGreen = greenFlashIds.includes(item.id);
               const isWrong = wrongFlashIds.includes(item.id);
               return (
-                <div key={item.id} className={`match-btn ${isSelected ? "selected" : ""} ${isGreen ? "green-flash" : ""} ${isWrong ? "wrong-flash" : ""}`} role="button" tabIndex={0} aria-pressed={isSelected} onClick={() => { if (!selA || !selB) setSelB(item); }} onKeyDown={e => { if ((e.key === "Enter" || e.key === " ") && (!selA || !selB)) { e.preventDefault(); setSelB(item); } }}>
-                  <div className="match-actions" onClick={(e) => e.stopPropagation()}>
-                    <button type="button" className="icon-btn save-word-btn" onClick={(e) => { e.stopPropagation(); onToggleSaved(item.id); }} aria-label={savedIds.includes(item.id) ? t("saved") : t("save")} aria-pressed={savedIds.includes(item.id)}><BookmarkIcon filled={savedIds.includes(item.id)} size={14} /></button>
-                    <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(item.translation, set.lang2); }} aria-label="Speak"><SpeakerIcon size={14} /></button>
-                  </div>
-                  <span className="match-text" dir={l2.dir} lang={item.lang2 || set.lang2}>{item.translation}</span>
-                </div>
+                <MatchWordButton key={item.id} item={item} side="right" text={item.translation} lang={item.lang2 || set.lang2} dir={l2.dir} isSelected={isSelected} isGreen={isGreen} isWrong={isWrong} onSelect={() => { if (!selA || !selB) setSelB(item); }} onOpen={(word, side) => setWordCard({ item: word, side })} />
               );
             })}
           </div>
@@ -345,18 +355,25 @@ function MatchingGame({ set, savedIds, onToggleSaved, onFinish, onExit, onReview
               const isGreen = greenFlashIds.includes(item.id);
               const isWrong = wrongFlashIds.includes(item.id);
               return (
-                <div key={item.id} className={`match-btn ${isSelected ? "selected" : ""} ${isGreen ? "green-flash" : ""} ${isWrong ? "wrong-flash" : ""}`} role="button" tabIndex={0} aria-pressed={isSelected} onClick={() => { if (!selA || !selB) setSelA(item); }} onKeyDown={e => { if ((e.key === "Enter" || e.key === " ") && (!selA || !selB)) { e.preventDefault(); setSelA(item); } }}>
-                  <div className="match-actions" onClick={(e) => e.stopPropagation()}>
-                    <button type="button" className="icon-btn save-word-btn" onClick={(e) => { e.stopPropagation(); onToggleSaved(item.id); }} aria-label={savedIds.includes(item.id) ? t("saved") : t("save")} aria-pressed={savedIds.includes(item.id)}><BookmarkIcon filled={savedIds.includes(item.id)} size={14} /></button>
-                    <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(item.word, set.lang1); }} aria-label="Speak"><SpeakerIcon size={14} /></button>
-                  </div>
-                  <span className="match-text" dir={l1.dir} lang={item.lang1 || set.lang1}>{item.word}</span>
-                </div>
+                <MatchWordButton key={item.id} item={item} side="left" text={item.word} lang={item.lang1 || set.lang1} dir={l1.dir} isSelected={isSelected} isGreen={isGreen} isWrong={isWrong} onSelect={() => { if (!selA || !selB) setSelA(item); }} onOpen={(word, side) => setWordCard({ item: word, side })} />
               );
             })}
           </div>
         </div>
       </div>
+      {wordCard && (
+        <div className="match-card-backdrop" onClick={() => setWordCard(null)}>
+          <div className="match-card" role="dialog" aria-modal="true" aria-label="Word details" onClick={e => e.stopPropagation()}>
+            <button type="button" className="match-card-close" onClick={() => setWordCard(null)} aria-label="Close">×</button>
+            <div className="match-card-word" dir={wordCard.side === "right" ? l2.dir : l1.dir} lang={wordCard.side === "right" ? (wordCard.item.lang2 || set.lang2) : (wordCard.item.lang1 || set.lang1)}>{wordCard.side === "right" ? wordCard.item.translation : wordCard.item.word}</div>
+            <div className="match-card-translation" dir={wordCard.side === "right" ? l1.dir : l2.dir} lang={wordCard.side === "right" ? (wordCard.item.lang1 || set.lang1) : (wordCard.item.lang2 || set.lang2)}>{wordCard.side === "right" ? wordCard.item.word : wordCard.item.translation}</div>
+            <div className="match-card-actions">
+              <button type="button" className="match-card-btn" onClick={() => speakText(wordCard.side === "right" ? wordCard.item.translation : wordCard.item.word, wordCard.side === "right" ? set.lang2 : set.lang1)} aria-label="Speak"><SpeakerIcon /></button>
+              <button type="button" className="match-card-btn save-word-btn" onClick={() => onToggleSaved(wordCard.item.id)} aria-label={savedIds.includes(wordCard.item.id) ? t("saved") : t("save")} aria-pressed={savedIds.includes(wordCard.item.id)}><BookmarkIcon filled={savedIds.includes(wordCard.item.id)} /></button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -470,19 +487,19 @@ function SentenceGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
           <div style={{ marginBottom: 20 }}>
             <span className="card-chip" style={{ background: 'color-mix(in srgb, var(--color-primary) 15%, transparent)', color: 'var(--text)' }}>{selectedWord.word} → {selectedWord.translation}</span>
           </div>
-          {loading ? (<div className="muted" style={{ margin: '20px 0' }}>⏳ {t("translating")}</div>) : (
+          {loading ? (<div className="muted" style={{ margin: '20px 0' }}><UiIcon name="hourglass" size={18} /> {t("translating")}</div>) : (
             <>
               <div style={{ background: 'color-mix(in srgb, var(--color-primary) 5%, transparent)', padding: 16, borderRadius: 14, marginBottom: 16, textAlign: 'start', borderLeft: '4px solid var(--primary)' }}>
-                <div style={{fontSize: 12, fontWeight: 800, color: 'var(--primary)', marginBottom: 8, textTransform: 'uppercase'}}>📖 {t("context")}</div>
+                <div style={{fontSize: 12, fontWeight: 800, color: 'var(--primary)', marginBottom: 8, textTransform: 'uppercase'}}><UiIcon name="bookOpen" size={16} /> {t("context")}</div>
                 <div style={{fontSize: 18, fontWeight: 700, lineHeight: 1.6}}>{sentence}</div>
               </div>
               <div style={{ background: 'color-mix(in srgb, var(--color-success) 5%, transparent)', padding: 16, borderRadius: 14, marginBottom: 16, textAlign: 'start', borderLeft: '4px solid var(--success)' }}>
-                <div style={{fontSize: 12, fontWeight: 800, color: 'var(--success)', marginBottom: 8, textTransform: 'uppercase'}}>💡 {t("explanation")}</div>
+                <div style={{fontSize: 12, fontWeight: 800, color: 'var(--success)', marginBottom: 8, textTransform: 'uppercase'}}><LightbulbIcon size={16} /> {t("explanation")}</div>
                 <div style={{fontSize: 15, fontWeight: 600, lineHeight: 1.6}}>{explanation}</div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <button type="button" className="btn btn-primary" onClick={() => speakText(sentence, set.lang1)}><SpeakerIcon /> {t("dicteeListenAgain")}</button>
-                <button type="button" className="btn btn-secondary" onClick={handleRegenerate}>🔄 {t("retry")}</button>
+                <button type="button" className="btn btn-secondary" onClick={handleRegenerate}><RefreshIcon size={18} /> {t("retry")}</button>
                 <button type="button" className="btn btn-secondary" onClick={() => setPickerOpen(true)}><BookIcon size={16} /> {t("word")}</button>
               </div>
             </>
@@ -490,7 +507,7 @@ function SentenceGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
         </div>
       ) : (
         <div className="glass results-box sentence-empty" style={{ textAlign: 'center' }}>
-          <p style={{ marginBottom: 20, fontWeight: 700, fontSize: 18 }}>✨ {t("sentenceGame")}</p>
+          <p style={{ marginBottom: 20, fontWeight: 700, fontSize: 18 }}><SparkleIcon size={20} /> {t("sentenceGame")}</p>
           <button type="button" className="btn btn-primary btn-lg" onClick={() => setPickerOpen(true)}><BookIcon size={18} /> {t("word")}</button>
         </div>
       )}
@@ -536,7 +553,7 @@ function DicteeGame({ onExit, onGameComplete }) {
   const [showHint, setShowHint] = useState(false);
   const [playerStatus, setPlayerStatus] = useState("idle");
   const [audioTime, setAudioTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(null);
   const [playbackRate, setPlaybackRate] = useState(1);
   const audioRef = useRef(null);
   const speechRunRef = useRef(0);
@@ -584,18 +601,21 @@ function DicteeGame({ onExit, onGameComplete }) {
     audio.dataset.text = currentText;
     audio.preload = "auto";
     audio.playbackRate = playbackRate;
-    audio.onloadedmetadata = () => {
-      setAudioDuration(Number.isFinite(audio.duration) ? audio.duration : Math.max(3, currentText.split(/\s+/).length * 0.55));
+    const updateDuration = () => {
+      if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+      setAudioDuration(audio.duration);
       if (pendingSeekRef.current !== null) {
-        audio.currentTime = Math.max(0, Math.min(audio.duration || 0, pendingSeekRef.current));
+        audio.currentTime = Math.max(0, Math.min(audio.duration, pendingSeekRef.current));
         pendingSeekRef.current = null;
         setAudioTime(audio.currentTime);
       }
     };
+    audio.onloadedmetadata = updateDuration;
+    audio.ondurationchange = updateDuration;
     audio.ontimeupdate = () => setAudioTime(audio.currentTime || 0);
     audio.onplay = () => setPlayerStatus("playing");
     audio.onpause = () => { if (!audio.ended) setPlayerStatus("paused"); };
-    audio.onended = () => { setAudioTime(audio.duration || audioTime); setPlayerStatus("ended"); };
+    audio.onended = () => { setAudioTime(Number.isFinite(audio.duration) ? audio.duration : audio.currentTime || 0); setPlayerStatus("ended"); };
     audio.onerror = () => {
       audioRef.current = null;
       if (window.speechSynthesis) {
@@ -615,7 +635,7 @@ function DicteeGame({ onExit, onGameComplete }) {
     };
     audioRef.current = audio;
     return audio;
-  }, [audioTime, currentText, playbackRate, speakText]);
+  }, [currentText, playbackRate, speakText]);
 
   const playSentence = useCallback(() => {
     const audio = createAudio();
@@ -678,7 +698,7 @@ function DicteeGame({ onExit, onGameComplete }) {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     pendingSeekRef.current = null;
     setAudioTime(0);
-    setAudioDuration(0);
+    setAudioDuration(null);
     setPlayerStatus("idle");
   }, [idx, currentText]);
 
@@ -731,11 +751,11 @@ function DicteeGame({ onExit, onGameComplete }) {
         <div className="game-header">
           <button type="button" className="icon-btn" onClick={onExit} aria-label={t("back")}><CloseIcon /></button>
           <div style={{ textAlign: "center", flex: 1 }}>
-            <div className="game-title">🎧 {t("dicteeTitle")}</div>
+            <div className="game-title"><HeadphonesIcon /> {t("dicteeTitle")}</div>
             <div className="game-subtitle">{t("dicteeSubtitle")}</div>
           </div>
         </div>
-        <div className="dictee-info-card">🎯 {t("dicteeDesc")}</div>
+        <div className="dictee-info-card"><UiIcon name="target" /> {t("dicteeDesc")}</div>
         <div className="dictee-level-grid">
           {levels.map((l, i) => (
             <button key={l} className="dictee-level-btn" onClick={() => startLevel(l)}>
@@ -755,11 +775,11 @@ function DicteeGame({ onExit, onGameComplete }) {
     const missingErrors = results.reduce((a, b) => a + b.correctTokens.filter(tk => tk.status === 'missing').length, 0);
     const extraErrors = results.reduce((a, b) => a + b.userTokens.filter(tk => tk.status === 'extra').length, 0);
     const wrongErrors = results.reduce((a, b) => a + b.userTokens.filter(tk => tk.status === 'wrong').length, 0);
-    let emoji = "💪";
+    let emoji = "muscles";
     let msg = t("dicteeContinue");
-    if (pct >= 90) { emoji = "🏆"; msg = t("dicteeExcellentMsg"); }
-    else if (pct >= 75) { emoji = "🌟"; msg = t("dicteeVeryGoodMsg"); }
-    else if (pct >= 50) { emoji = "👍"; msg = t("dicteeGoodMsg"); }
+    if (pct >= 90) { emoji = "trophy"; msg = t("dicteeExcellentMsg"); }
+    else if (pct >= 75) { emoji = "star"; msg = t("dicteeVeryGoodMsg"); }
+    else if (pct >= 50) { emoji = "thumbsUp"; msg = t("dicteeGoodMsg"); }
     return (
       <div className="dictee-game game-shell results-box glass">
         <div className="results-emoji"><LearningEmoji emoji={emoji} /></div>
@@ -772,13 +792,13 @@ function DicteeGame({ onExit, onGameComplete }) {
           <div className="dictee-stat-card"><div className="dictee-stat-value">{pct}%</div><div className="dictee-stat-label">{t("accuracy")}</div></div>
         </div>
         <div className="wrong-words-section">
-          <div className="wrong-words-title">📊 {t("dicteeErrorAnalysis")}</div>
+          <div className="wrong-words-title"><ChartIcon /> {t("dicteeErrorAnalysis")}</div>
           <div className="word-row"><span>{t("dicteeMissingWords")}</span><strong>{missingErrors}</strong></div>
           <div className="word-row"><span>{t("dicteeExtraWords")}</span><strong>{extraErrors}</strong></div>
           <div className="word-row"><span>{t("dicteeSpellingErrors")}</span><strong>{wrongErrors}</strong></div>
         </div>
-        <button type="button" className="btn btn-primary btn-block btn-lg" onClick={() => setState("level_select")}>🔄 {t("dicteeChooseAnotherLevel")}</button>
-        <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onExit}>🏠 {t("home")}</button>
+        <button type="button" className="btn btn-primary btn-block btn-lg" onClick={() => setState("level_select")}><RefreshIcon /> {t("dicteeChooseAnotherLevel")}</button>
+        <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onExit}><HomeIcon /> {t("home")}</button>
       </div>
     );
   }
@@ -792,15 +812,15 @@ function DicteeGame({ onExit, onGameComplete }) {
       <div className="game-header">
         <button type="button" className="icon-btn" onClick={onExit} aria-label={t("back")}><CloseIcon /></button>
         <div style={{ textAlign: "center", flex: 1 }}>
-          <div className="game-title">🎧 {t("dicteeTitle")} {level}</div>
+          <div className="game-title"><HeadphonesIcon /> {t("dicteeTitle")} {level}</div>
           <div className="game-subtitle">{idx + 1} / {session.length}</div>
         </div>
         <div className="dictee-navigation">
-          <button type="button" className="icon-btn" onClick={() => chooseDictation(idx - 1)} disabled={idx === 0} aria-label="الإملاء السابق">‹</button>
-          <select value={idx} onChange={e => chooseDictation(Number(e.target.value))} aria-label="اختيار الإملاء">
+          <button type="button" className="icon-btn" onClick={() => chooseDictation(idx - 1)} disabled={idx === 0} aria-label={t("dicteePreviousAria")}><UiIcon name="arrowLeft" size={18} /></button>
+          <select value={idx} onChange={e => chooseDictation(Number(e.target.value))} aria-label={t("dicteeSelectAria")}>
             {session.map((_, i) => <option key={i} value={i}>#{i + 1}</option>)}
           </select>
-          <button type="button" className="icon-btn" onClick={() => chooseDictation(idx + 1)} disabled={idx >= session.length - 1} aria-label="الإملاء التالي">›</button>
+          <button type="button" className="icon-btn" onClick={() => chooseDictation(idx + 1)} disabled={idx >= session.length - 1} aria-label={t("dicteeNextAria")}><ArrowRightIcon size={18} /></button>
         </div>
       </div>
 
@@ -808,8 +828,8 @@ function DicteeGame({ onExit, onGameComplete }) {
 
       <div className="dictee-pro-player glass" dir="ltr">
         <div className="dictee-audio-info">
-          <span className="dictee-badge">🎧 {playerStatus === "playing" ? t("dicteePlaying") : playerStatus === "paused" ? t("dicteePaused") : t("dicteeReady")}</span>
-          <span className="dictee-badge live">📝 {wordCount} {t("words")}</span>
+          <span className="dictee-badge"><HeadphonesIcon size={18} /> {playerStatus === "playing" ? t("dicteePlaying") : playerStatus === "paused" ? t("dicteePaused") : t("dicteeReady")}</span>
+          <span className="dictee-badge live"><NoteIcon size={18} /> {wordCount} {t("words")}</span>
         </div>
         <div className="dictee-player-timeline">
           <span>{formatTime(audioTime)}</span>
@@ -817,24 +837,25 @@ function DicteeGame({ onExit, onGameComplete }) {
             className="dictee-scrubber"
             type="range"
             min="0"
-            max={Math.max(1, audioDuration)}
+            max={audioDuration ?? 1}
             step="0.1"
-            value={Math.min(audioTime, audioDuration || 1)}
+            value={Math.min(audioTime, audioDuration ?? 1)}
             onChange={handleTimelineChange}
             aria-label={t("dicteeReplay")}
+            disabled={audioDuration === null}
           />
-          <span>{formatTime(audioDuration)}</span>
+          <span className={audioDuration === null ? "dictee-duration-pending" : ""} role="status">{audioDuration === null ? t("dicteeLoading") : formatTime(audioDuration)}</span>
         </div>
         <div className="dictee-player-controls">
-          <button type="button" className="icon-btn" onClick={() => seekBySeconds(-5)} aria-label="رجوع 5 ثوانٍ" title="رجوع 5 ثوانٍ">↶<small>5</small></button>
+          <button type="button" className="icon-btn" onClick={() => seekBySeconds(-5)} aria-label={t("dicteeBackFive")} title={t("dicteeBackFive")} disabled={audioDuration === null}><UiIcon name="arrowLeft" size={18} /><small>5</small></button>
           <button type="button" className="play-main" onClick={togglePlayer} aria-label={t("dicteePlayPause")} title={t("dicteePlayPause")}>
-            {playerStatus === "playing" ? "⏸" : "▶"}
+            {playerStatus === "playing" ? <PauseIcon size={26} /> : <UiIcon name="play" size={26} />}
           </button>
-          <button type="button" className="icon-btn" onClick={() => seekBySeconds(5)} aria-label="تقديم 5 ثوانٍ" title="تقديم 5 ثوانٍ">↷<small>5</small></button>
+          <button type="button" className="icon-btn" onClick={() => seekBySeconds(5)} aria-label={t("dicteeForwardFive")} title={t("dicteeForwardFive")} disabled={audioDuration === null}><ArrowRightIcon size={18} /><small>5</small></button>
         </div>
         <div className="dictee-speed-row">
-          <span>⚙️ سرعة النطق</span>
-          <select value={playbackRate} onChange={handleRateChange} aria-label="سرعة النطق">
+          <span><GearIcon size={17} /> {t("dicteeSpeedLabel")}</span>
+          <select value={playbackRate} onChange={handleRateChange} aria-label={t("dicteeSpeedLabel")}>
             <option value="0.55">0.55×</option>
             <option value="0.7">0.70×</option>
             <option value="0.85">0.85×</option>
@@ -848,10 +869,10 @@ function DicteeGame({ onExit, onGameComplete }) {
         <>
           <div className="dictee-toolbar">
             <button type="button" className="btn btn-secondary" onClick={() => setShowHint(h => !h)}>
-              💡 {showHint ? t("dicteeHideHint") : t("dicteeShowHint")}
+              <LightbulbIcon size={18} /> {showHint ? t("dicteeHideHint") : t("dicteeShowHint")}
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => setUserInput("")} disabled={!userInput}>
-              🧹 {t("dicteeClear")}
+              <BroomIcon size={18} /> {t("dicteeClear")}
             </button>
           </div>
 
@@ -866,7 +887,7 @@ function DicteeGame({ onExit, onGameComplete }) {
             autoFocus
           />
           <button type="button" className="btn btn-primary btn-block btn-lg" onClick={handleCorriger} disabled={!userInput.trim()}>
-            ✅ {t("dicteeCorrect")}
+            <CheckIcon size={20} /> {t("dicteeCorrect")}
           </button>
         </>
       )}
@@ -885,7 +906,7 @@ function DicteeGame({ onExit, onGameComplete }) {
             {diffResult.correctTokens.map((tok, i) => (<span key={i} className={`diff-word ${tok.status}`}>{tok.text}</span>))}
           </div>
           <button type="button" className="btn btn-success btn-block btn-lg" onClick={handleNext}>
-            {idx + 1 >= session.length ? `${t("dicteeSeeResults")} 🏁` : `${t("dicteeNext")} ➡️`}
+            {idx + 1 >= session.length ? <><FlagIcon size={20} /> {t("dicteeSeeResults")}</> : <>{t("dicteeNext")} <ArrowRightIcon size={20} /></>}
           </button>
         </div>
       )}

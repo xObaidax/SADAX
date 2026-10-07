@@ -633,14 +633,14 @@ function AppContent() {
                   <div className={`theme-toggle-switch ${theme === "dark" ? "active" : ""}`} />
                 </div>
                 {!user ? (
-                   <button type="button" className="btn btn-primary btn-block" onClick={() => startLogin("login")} style={{ marginTop: 10 }}>🔐 {t("login")}</button>
+                   <button type="button" className="btn btn-primary btn-block" onClick={() => startLogin("login")} style={{ marginTop: 10 }}><UiIcon name="lock" /> {t("login")}</button>
                 ) : (
                    <div>
-                     <button type="button" className="btn btn-secondary btn-block" onClick={() => startLogin("backup")} style={{ marginTop: 10 }}>✉️ {t("backupEmail")}</button>
-                     <button type="button" className="btn btn-danger btn-block" onClick={() => setLogoutConfirm(true)} style={{ marginTop: 10 }}>🚪 {t("logout")}</button>
+                     <button type="button" className="btn btn-secondary btn-block" onClick={() => startLogin("backup")} style={{ marginTop: 10 }}><UiIcon name="mail" /> {t("backupEmail")}</button>
+                     <button type="button" className="btn btn-danger btn-block" onClick={() => setLogoutConfirm(true)} style={{ marginTop: 10 }}><UiIcon name="signOut" /> {t("logout")}</button>
                    </div>
                 )}
-                <button type="button" className="btn btn-secondary btn-block" onClick={() => setModal("settings")} style={{ marginTop: 10 }}>⚙️ {t("settings")}</button>
+                <button type="button" className="btn btn-secondary btn-block" onClick={() => setModal("settings")} style={{ marginTop: 10 }}><GearIcon /> {t("settings")}</button>
               </div>
             </div>
           )}
@@ -702,7 +702,7 @@ function AppContent() {
             </div>
             <div className="modal-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>{t("cancel")}</button>
-              <button type="button" className="btn btn-primary" onClick={openEssentialFolder}>📂 {t("openFolder")}</button>
+              <button type="button" className="btn btn-primary" onClick={openEssentialFolder}><FolderIcon /> {t("openFolder")}</button>
             </div>
           </div>
         </div>
@@ -728,30 +728,30 @@ function AppContent() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h3>{t("settings")}</h3>
             <div className="tabs">
-              <div className={`tab ${settingsTab === "general" ? "active" : ""}`} onClick={() => setSettingsTab("general")}>🌍 {t("language")}</div>
+              <div className={`tab ${settingsTab === "general" ? "active" : ""}`} onClick={() => setSettingsTab("general")}><UiIcon name="globe" size={18} /> {t("language")}</div>
               <div className={`tab ${settingsTab === "voice" ? "active" : ""}`} onClick={() => setSettingsTab("voice")}><SpeakerIcon size={14} /> {t("voiceSettings")}</div>
               <div className={`tab ${settingsTab === "data" ? "active" : ""}`} onClick={() => setSettingsTab("data")}><BookIcon size={14} color="var(--color-primary)" /> Backup</div>
             </div>
             {settingsTab === "general" && (
-              <div><div className="field"><label>🌍 {t("language")}</label><select value={locale} onChange={e => setLocale(e.target.value)}>{langs.map(l => (<option key={l.code} value={l.code}>{l.flag} {l.name}</option>))}</select></div></div>
+              <div><div className="field"><label><UiIcon name="globe" size={18} /> {t("language")}</label><select value={locale} onChange={e => setLocale(e.target.value)}>{langs.map(l => (<option key={l.code} value={l.code}>{l.flag} {l.name}</option>))}</select></div></div>
             )}
             {settingsTab === "voice" && (
               <div>
                 <div className="field">
-                  <label>⚡ {t("speechRate")}: {voiceSettings.rate.toFixed(2)}</label>
-                  <div className="slider-wrap"><span>🐢</span><input type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.rate} onChange={e => setVoiceSettings({ ...voiceSettings, rate: parseFloat(e.target.value) })} /><span>🐇</span><span className="slider-value">{voiceSettings.rate.toFixed(2)}</span></div>
+                  <label><UiIcon name="bolt" size={18} /> {t("speechRate")}: {voiceSettings.rate.toFixed(2)}</label>
+                  <div className="slider-wrap"><span><UiIcon name="turtle" size={18} /></span><input type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.rate} onChange={e => setVoiceSettings({ ...voiceSettings, rate: parseFloat(e.target.value) })} /><span><UiIcon name="rabbit" size={18} /></span><span className="slider-value">{voiceSettings.rate.toFixed(2)}</span></div>
                 </div>
                 <div className="field">
-                  <label>🎵 {t("pitch")}: {voiceSettings.pitch.toFixed(2)}</label>
-                  <div className="slider-wrap"><span>⬇</span><input type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.pitch} onChange={e => setVoiceSettings({ ...voiceSettings, pitch: parseFloat(e.target.value) })} /><span>⬆</span><span className="slider-value">{voiceSettings.pitch.toFixed(2)}</span></div>
+                  <label><UiIcon name="music" size={18} /> {t("pitch")}: {voiceSettings.pitch.toFixed(2)}</label>
+                  <div className="slider-wrap"><span><UiIcon name="arrowDown" size={18} /></span><input type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.pitch} onChange={e => setVoiceSettings({ ...voiceSettings, pitch: parseFloat(e.target.value) })} /><span><UiIcon name="arrowUp" size={18} /></span><span className="slider-value">{voiceSettings.pitch.toFixed(2)}</span></div>
                 </div>
               </div>
             )}
             {settingsTab === "data" && (
               <div>
-                <div className="field"><label><BookIcon size={14} color="var(--color-primary)" /> {t("exportData")}</label><button type="button" className="btn btn-primary btn-block" onClick={handleExport}>📥 Download Backup</button></div>
+                <div className="field"><label><BookIcon size={14} color="var(--color-primary)" /> {t("exportData")}</label><button type="button" className="btn btn-primary btn-block" onClick={handleExport}><UiIcon name="download" /> Download Backup</button></div>
                 <div className="field"><label><BookIcon size={14} color="var(--color-primary)" /> {t("importData")}</label><div className="file-upload-wrap"><FolderIcon size={18} /> Choose backup file<input type="file" accept=".json" onChange={e => handleImport(e.target.files[0])} /></div></div>
-                <div className="field" style={{ marginTop: 20 }}><label>⚠️ {t("resetAll")}</label><button type="button" className="btn btn-danger btn-block" onClick={handleReset}>🗑️ {t("resetAll")}</button></div>
+                <div className="field" style={{ marginTop: 20 }}><label><UiIcon name="warning" size={18} /> {t("resetAll")}</label><button type="button" className="btn btn-danger btn-block" onClick={handleReset}><TrashIcon /> {t("resetAll")}</button></div>
               </div>
             )}
             <div className="modal-actions"><button type="button" className="btn btn-primary btn-block" onClick={() => setModal(null)}>{t("close")}</button></div>
@@ -792,7 +792,7 @@ function AppContent() {
             ) : (
               <div className="auth-step" key="otp-step">
                 <p className="otp-intro">Saisissez le code à 6 chiffres envoyé à</p>
-                <div className="otp-email-badge">✉️ {loginData.email}</div>
+                <div className="otp-email-badge"><UiIcon name="mail" size={18} /> {loginData.email}</div>
                 <div className="field" style={{ marginTop: 18 }}>
                   <label style={{ textAlign: "center" }}>{t("enterCode")}</label>
                   <div className="otp-inputs">

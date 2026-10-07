@@ -4,10 +4,10 @@ function Results({ results, onRetry, onRetryWrong, onHome }) {
   const correct = results.filter(r => r.correct).length;
   const pct = total ? Math.round((correct / total) * 100) : 0;
   const wrong = results.filter(r => !r.correct);
-  let label = t("tryAgain"), msg = t("msgTryAgain"), emoji = "💪";
-  if (pct >= 90) { label = t("excellent"); msg = t("msgExcellent"); emoji = "🌟"; }
-  else if (pct >= 70) { label = t("good"); msg = t("msgGood"); emoji = "👏"; }
-  else if (pct >= 50) { label = t("fair"); msg = t("msgFair"); emoji = "👍"; }
+  let label = t("tryAgain"), msg = t("msgTryAgain"), emoji = "muscles";
+  if (pct >= 90) { label = t("excellent"); msg = t("msgExcellent"); emoji = "star"; }
+  else if (pct >= 70) { label = t("good"); msg = t("msgGood"); emoji = "applause"; }
+  else if (pct >= 50) { label = t("fair"); msg = t("msgFair"); emoji = "thumbsUp"; }
   return (
     <div className="results-box glass">
       <div className="results-emoji"><LearningEmoji emoji={emoji} /></div>
@@ -29,9 +29,9 @@ function Results({ results, onRetry, onRetryWrong, onHome }) {
           ))}
         </div>
       )}
-      <button type="button" className="btn btn-primary btn-block btn-lg" onClick={onRetry}>🔄 {t("retry")}</button>
-      {wrong.length > 0 && (<button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onRetryWrong}>⭐ {t("retryWrong")}</button>)}
-      <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onHome}>🏠 {t("home")}</button>
+      <button type="button" className="btn btn-primary btn-block btn-lg" onClick={onRetry}><RefreshIcon /> {t("retry")}</button>
+      {wrong.length > 0 && (<button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onRetryWrong}><StarIcon /> {t("retryWrong")}</button>)}
+      <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onHome}><HomeIcon /> {t("home")}</button>
     </div>
   );
 }
@@ -771,7 +771,7 @@ function SetEditor({ set, onBack, onUpdate, onDeleteWord, onWordAdded }) {
             <button type="button" className={`voice-input-btn ${listening ? "listening" : ""}`} onClick={toggleListening} disabled={!supported} aria-label={listening ? t("voiceListening") : t("voiceInput")} aria-pressed={listening} title={listening ? t("voiceListening") : t("voiceInput")}><VoiceIcon size={22} /></button>
           </div>
           <div className={`voice-input-hint ${listening ? "listening" : ""}`}><VoiceIcon size={14} /> {listening ? t("voiceListening") : t("voiceInput")}</div>
-          {isTranslating && <div className="muted" style={{ marginTop: 8 }}>⏳ {t("translating")}</div>}
+          {isTranslating && <div className="muted" style={{ marginTop: 8 }}><UiIcon name="hourglass" size={18} /> {t("translating")}</div>}
         </div>
         <div className="field">
           <label>{t("translation")} ({l2.name})</label>
