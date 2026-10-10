@@ -49,7 +49,7 @@ urlpatterns = [
     path('', serve_frontend),
     path('html/index.html', serve_frontend),
     re_path(
-        r'^(?:html/)?(?P<path>(styles\.css|app\.jsx|components\.jsx|games\.jsx|i18n\.jsx|assets/.+|favicon\.ico|logo\.svg))$',
+        r'^(?:html/)?(?P<path>(styles\.css|app\.jsx|components\.jsx|games\.jsx|i18n\.jsx|assets/.+|vendor/.+|favicon\.ico|logo\.svg))$',
         serve_html_asset,
     ),
 ]

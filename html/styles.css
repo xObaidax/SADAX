@@ -1,5 +1,4 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 :root {
   --color-label: var(--color-primary-light);
   --color-bg:            #0C0D18;
@@ -1051,6 +1050,10 @@ position: relative; overflow: hidden;
 .games-grid { gap: 12px; }
 .dual-card-container { width: 95%; min-height: 320px; }
 .field input, .field select, .dropdown-search, .spelling-input { font-size: 16px !important; }
+input,
+textarea,
+select,
+[contenteditable="true"] { font-size: 16px !important; }
 .bottom-nav-premium { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: calc(100% - 24px); max-width: 400px; }
 }
 @media (max-width: 430px) {
