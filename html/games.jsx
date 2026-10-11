@@ -1,3 +1,28 @@
+function AnimatedScore({ value, suffix = "" }) {
+  const [display, setDisplay] = useState(0);
+  const previous = useRef(0);
+  useEffect(() => {
+    const target = Number(value) || 0;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      setDisplay(target);
+      previous.current = target;
+      return;
+    }
+    const from = previous.current;
+    const start = performance.now();
+    let frame;
+    const tick = now => {
+      const progress = Math.min((now - start) / 400, 1);
+      setDisplay(Math.round(from + (target - from) * (1 - Math.pow(1 - progress, 3))));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+      else previous.current = target;
+    };
+    frame = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(frame); previous.current = target; };
+  }, [value]);
+  return <>{display}{suffix}</>;
+}
+
 function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings, onReview, onGameComplete }) {
   const { t } = useI18n();
   const { speakText, speaking } = useSpeech(voiceSettings.rate, voiceSettings.pitch);
@@ -80,6 +105,7 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
   };
   const isSaved = savedIds.includes(card.id);
   const progress = cards.length ? ((idx + 1) / cards.length) * 100 : 0;
+  const answerFeedback = isAnswering ? (results[results.length - 1]?.correct ? "answer-feedback-correct" : "answer-feedback-wrong") : "";
   return (
     <div className="flashcard-game game-shell">
       <div className="game-header">
@@ -90,10 +116,15 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
         </div>
         <button type="button" className="icon-btn" onClick={() => answer(false)} aria-label="Skip"><SkipIcon /></button>
       </div>
-      <div className="progress-bar"><div className="progress-fill" style={{ width: progress + "%" }} /></div>
-      <div className="dual-card-container single-card-mode">
+      <div className={`progress-bar ${progress >= 100 ? "progress-complete" : ""}`}><div className="progress-fill" style={{ width: progress + "%" }} /></div>
+      <div className="card-dots" aria-label={`${t("card")} ${idx + 1} ${t("of")} ${cards.length}`}>
+        {cards.slice(0, Math.min(cards.length, 30)).map((c, i) => (
+          <div key={c.id} className={`card-dot ${i < idx ? (results[i]?.correct ? 'correct' : 'wrong') : ''} ${i === idx ? 'current' : ''}`} />
+        ))}
+      </div>
+      <div key={card.id} className={`dual-card-container single-card-mode ${answerFeedback}`}>
         <div
-          className={`dual-card ${showTranslation ? 'dual-card-arabic' : 'dual-card-french'}`}
+          className={`dual-card dual-card-french ${showTranslation ? 'is-flipped' : ''}`}
           role="button"
           tabIndex={0}
           aria-label={`${t("tapToFlip")}. ${t("correct")} إلى اليمين، ${t("wrong")} إلى اليسار`}
@@ -116,24 +147,28 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
               <SpeakerIcon active={speaking} />
             </button>
           </div>
-          <div className="card-lang-label"><UiIcon name="globe" size={15} /> {showTranslation ? l2.name : l1.name}</div>
-          <div className={showTranslation ? "card-translation" : "card-word"} dir={showTranslation ? l2.dir : l1.dir} lang={showTranslation ? (card.lang2 || set.lang2) : (card.lang1 || set.lang1)}>
-            {showTranslation ? card.translation : card.word}
+          <div className="flashcard-flip-stage">
+            <div className="flashcard-flip-inner">
+              <div className="flashcard-face flashcard-front" aria-hidden={showTranslation}>
+                <div className="card-lang-label"><UiIcon name="globe" size={15} /> {l1.name}</div>
+                <div className="card-word" dir={l1.dir} lang={card.lang1 || set.lang1}>{card.word}</div>
+                <div className="card-hint"><SparkleIcon size={16} /> {t("tapToFlip")}</div>
+              </div>
+              <div className="flashcard-face flashcard-back" aria-hidden={!showTranslation}>
+                <div className="card-lang-label"><UiIcon name="globe" size={15} /> {l2.name}</div>
+                <div className="card-translation" dir={l2.dir} lang={card.lang2 || set.lang2}>{card.translation}</div>
+                <div className="card-hint"><SparkleIcon size={16} /> {t("tapToFlip")}</div>
+              </div>
+            </div>
           </div>
-          <div className="card-hint"><SparkleIcon size={16} /> {t("tapToFlip")}</div>
         </div>
       </div>
-      <div className="card-dots">
-        {cards.slice(0, Math.min(cards.length, 30)).map((c, i) => (
-          <div key={c.id} className={`card-dot ${i < idx ? (results[i]?.correct ? 'correct' : 'wrong') : ''} ${i === idx ? 'current' : ''}`} />
-        ))}
-      </div>
       <div className="answer-buttons">
-        <button type="button" className="btn btn-danger btn-lg" onClick={() => answer(false)} disabled={isAnswering}>
-          <CrossIcon size={16} /> {t("wrong")}
+        <button type="button" className="btn btn-danger btn-lg ui-btn ui-btn-secondary" onClick={() => answer(false)} disabled={isAnswering}>
+          <CrossIcon size={16} /> {t("flashcardDontKnow")}
         </button>
-        <button type="button" className="btn btn-success btn-lg" onClick={() => answer(true)} disabled={isAnswering}>
-          <CheckIcon size={16} /> {t("correct")}
+        <button type="button" className="btn btn-success btn-lg ui-btn ui-btn-primary" onClick={() => answer(true)} disabled={isAnswering}>
+          <CheckIcon size={16} /> {t("flashcardKnow")}
         </button>
       </div>
     </div>
@@ -187,8 +222,8 @@ function MCQGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings
           <div className="game-subtitle">{t("question")} {idx + 1} {t("of")} {cards.length}</div>
         </div>
       </div>
-      <div className="progress-bar"><div className="progress-fill" style={{ width: progress + "%" }} /></div>
-      <div className="mcq-word-box glass" style={{position: 'relative'}}>
+      <div className={`progress-bar ${progress >= 100 ? "progress-complete" : ""}`}><div className="progress-fill" style={{ width: progress + "%" }} /></div>
+      <div key={card.id} className="mcq-word-box glass" style={{position: 'relative'}}>
         <div style={{position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', zIndex: 5}}>
           <button type="button" className="icon-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onClick={(e) => { e.stopPropagation(); onToggleSaved(card.id); }}><BookmarkIcon filled={isSaved} /></button>
           <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(card.word, set.lang1); }}><SpeakerIcon /></button>
@@ -199,8 +234,8 @@ function MCQGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings
         {options.map((opt, i) => {
           let cls = "mcq-option";
           if (selected !== null) {
-            if (opt === card.translation) cls += " correct";
-            else if (opt === selected) cls += " wrong";
+            if (opt === card.translation) cls += " correct answer-feedback-correct";
+            else if (opt === selected) cls += " wrong answer-feedback-wrong";
           }
           return (<button type="button" key={i} className={cls} disabled={selected !== null} onClick={() => choose(opt)}>{opt}</button>);
         })}
@@ -251,9 +286,10 @@ function SpellingGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
           <div className="game-title"><BookIcon size={20} color="var(--color-primary)" /> {set.name}</div>
           <div className="game-subtitle">{t("question")} {idx + 1} {t("of")} {cards.length}</div>
         </div>
+        <div className="spelling-score" aria-label={t("score")}>{results.filter(result => result.correct).length}/{results.length}</div>
       </div>
-      <div className="progress-bar"><div className="progress-fill" style={{ width: progress + "%" }} /></div>
-      <div className="spelling-box glass" style={{position: 'relative'}}>
+      <div className={`progress-bar ${progress >= 100 ? "progress-complete" : ""}`}><div className="progress-fill" style={{ width: progress + "%" }} /></div>
+      <div key={card.id} className={`spelling-box glass ${msg ? `answer-feedback-${msg}` : ""}`} style={{position: 'relative'}}>
         <div style={{position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', zIndex: 5}}>
           <button type="button" className="icon-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onClick={(e) => { e.stopPropagation(); onToggleSaved(card.id); }}><BookmarkIcon filled={isSaved} /></button>
           <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(card.translation, set.lang2); }}><SpeakerIcon /></button>
@@ -261,7 +297,7 @@ function SpellingGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
         <div style={{marginTop: 30, fontSize: 13, color: "var(--text-light)", fontWeight: 600}}><UiIcon name="globe" size={16} /> {t("listenWrite")}</div>
         <div className="spelling-translation" dir={l2.dir} lang={card.lang2 || set.lang2}>{card.translation}</div>
       </div>
-      <input className={`spelling-input ${msg || ""}`} value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => { if (e.key === "Enter") submit(); }} placeholder={t("typeWord")} disabled={!!msg} autoFocus />
+      <input className={`spelling-input ui-input ${msg || ""}`} value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => { if (e.key === "Enter") submit(); }} placeholder={t("typeWord")} disabled={!!msg} autoFocus />
       {msg === "wrong" && (<div style={{ textAlign: "center", color: "var(--danger)", fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><CrossIcon size={16} color="#7B2D2D" /> {card.word}</div>)}
       {msg === "correct" && (<div style={{ textAlign: "center", color: "var(--success)", fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><CheckIcon size={16} color="#2D6A4F" /></div>)}
       <button type="button" className="btn btn-primary btn-block btn-lg" onClick={submit} disabled={!val.trim() || !!msg}>{t("check")}</button>
@@ -781,10 +817,10 @@ function DicteeGame({ onExit, onGameComplete }) {
     else if (pct >= 75) { emoji = "star"; msg = t("dicteeVeryGoodMsg"); }
     else if (pct >= 50) { emoji = "thumbsUp"; msg = t("dicteeGoodMsg"); }
     return (
-      <div className="dictee-game game-shell results-box glass">
+      <div className="dictee-game game-shell results-box glass ui-card game-results-enter">
         <div className="results-emoji"><LearningEmoji emoji={emoji} /></div>
         <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8 }}>{t("dicteeFinished")}</h2>
-        <div className="score-circle">{pct}%</div>
+        <div className="score-circle"><AnimatedScore value={pct} suffix="%" /></div>
         <div className="muted">{t("dicteeFinalScore")} : <strong style={{ color: "var(--primary)" }}>{totalCorrect} / {totalWords}</strong> {t("words")}</div>
         <div className="results-message">{msg}</div>
         <div className="dictee-final-stats">
@@ -797,8 +833,8 @@ function DicteeGame({ onExit, onGameComplete }) {
           <div className="word-row"><span>{t("dicteeExtraWords")}</span><strong>{extraErrors}</strong></div>
           <div className="word-row"><span>{t("dicteeSpellingErrors")}</span><strong>{wrongErrors}</strong></div>
         </div>
-        <button type="button" className="btn btn-primary btn-block btn-lg" onClick={() => setState("level_select")}><RefreshIcon /> {t("dicteeChooseAnotherLevel")}</button>
-        <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onExit}><HomeIcon /> {t("home")}</button>
+        <button type="button" className="btn btn-primary btn-block btn-lg ui-btn ui-btn-primary" onClick={() => setState("level_select")}><RefreshIcon /> {t("dicteeChooseAnotherLevel")}</button>
+        <button type="button" className="btn btn-secondary btn-block ui-btn ui-btn-secondary" style={{ marginTop: 10 }} onClick={onExit}><HomeIcon /> {t("home")}</button>
       </div>
     );
   }
@@ -824,9 +860,9 @@ function DicteeGame({ onExit, onGameComplete }) {
         </div>
       </div>
 
-      <div className="progress-bar"><div className="progress-fill" style={{ width: progressPct + "%" }} /></div>
+      <div className={`progress-bar ${progressPct >= 100 ? "progress-complete" : ""}`}><div className="progress-fill" style={{ width: progressPct + "%" }} /></div>
 
-      <div className="dictee-pro-player glass" dir="ltr">
+      <div key={idx} className="dictee-pro-player glass ui-card" dir="ltr">
         <div className="dictee-audio-info">
           <span className="dictee-badge"><HeadphonesIcon size={18} /> {playerStatus === "playing" ? t("dicteePlaying") : playerStatus === "paused" ? t("dicteePaused") : t("dicteeReady")}</span>
           <span className="dictee-badge live"><NoteIcon size={18} /> {wordCount} {t("words")}</span>
@@ -855,7 +891,7 @@ function DicteeGame({ onExit, onGameComplete }) {
         </div>
         <div className="dictee-speed-row">
           <span><GearIcon size={17} /> {t("dicteeSpeedLabel")}</span>
-          <select value={playbackRate} onChange={handleRateChange} aria-label={t("dicteeSpeedLabel")}>
+          <select className="ui-input" value={playbackRate} onChange={handleRateChange} aria-label={t("dicteeSpeedLabel")}>
             <option value="0.55">0.55×</option>
             <option value="0.7">0.70×</option>
             <option value="0.85">0.85×</option>
@@ -879,21 +915,21 @@ function DicteeGame({ onExit, onGameComplete }) {
           {showHint && (<div className="dictee-hint" dir="ltr">{hintText}</div>)}
 
           <textarea
-            className="dictee-textarea"
+            className="dictee-textarea ui-input"
             dir="ltr"
             value={userInput}
             onChange={e => setUserInput(e.target.value)}
             placeholder={t("dicteeWritePlaceholder")}
             autoFocus
           />
-          <button type="button" className="btn btn-primary btn-block btn-lg" onClick={handleCorriger} disabled={!userInput.trim()}>
+          <button type="button" className="btn btn-primary btn-block btn-lg ui-btn ui-btn-primary" onClick={handleCorriger} disabled={!userInput.trim()}>
             <CheckIcon size={20} /> {t("dicteeCorrect")}
           </button>
         </>
       )}
 
       {state === "corrected" && diffResult && (
-        <div className="diff-result" dir="ltr">
+        <div className={`diff-result ${diffResult.correctCount === diffResult.totalWords && diffResult.totalWords > 0 ? "answer-feedback-correct" : "answer-feedback-wrong"}`} dir="ltr">
           <div style={{ textAlign: "center", marginBottom: 16 }}>
             <span style={{ fontSize: 24, fontWeight: 900, color: "var(--primary)" }}>{diffResult.correctCount} / {diffResult.totalWords} {t("words")}</span>
           </div>
@@ -905,7 +941,7 @@ function DicteeGame({ onExit, onGameComplete }) {
           <div className="diff-text">
             {diffResult.correctTokens.map((tok, i) => (<span key={i} className={`diff-word ${tok.status}`}>{tok.text}</span>))}
           </div>
-          <button type="button" className="btn btn-success btn-block btn-lg" onClick={handleNext}>
+          <button type="button" className={`btn btn-success btn-block btn-lg ${diffResult.correctCount === diffResult.totalWords && diffResult.totalWords > 0 ? "next-pulse" : ""}`} onClick={handleNext}>
             {idx + 1 >= session.length ? <><FlagIcon size={20} /> {t("dicteeSeeResults")}</> : <>{t("dicteeNext")} <ArrowRightIcon size={20} /></>}
           </button>
         </div>

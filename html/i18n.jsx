@@ -246,6 +246,46 @@ const FOLDER_COPY = {
   en: { folder_new_file: "New file", folder_file_name_placeholder: "File name", folder_delete_file: "Delete file", folder_delete_file_confirm: "Delete this file? Its words will remain directly in the folder.", folder_word_file_label: "File", folder_word_no_file: "No file", group_today: "Today", group_yesterday: "Yesterday", game_select_files: "Files to play", game_select_all: "All", game_start_selected: "Start selected", guest_notice_title: "Sign in to keep your words available later.", guest_notice_button: "Sign in", guest_notice_dismiss: "Dismiss" }
 };
 Object.keys(FOLDER_COPY).forEach(code => Object.assign(LOCALES[code], FOLDER_COPY[code]));
+const HOME_COPY = {
+  ar: { home_morning: "صباح الخير", home_afternoon: "مرحبًا", home_evening: "مساء الخير", home_subtitle: "واصل تعلّمك", home_progress: "تقدمك اليوم", home_progress_count: "{n}/{max} كلمات تمت مراجعتها", home_continue: "متابعة", home_explore: "استكشف الألعاب", home_word_of_day: "كلمة اليوم" },
+  fr: { home_morning: "Bonjour", home_afternoon: "Bonjour", home_evening: "Bonsoir", home_subtitle: "Continue ton apprentissage", home_progress: "Progression du jour", home_progress_count: "{n}/{max} mots révisés", home_continue: "Continuer", home_explore: "Explorer les jeux", home_word_of_day: "Mot du jour" },
+  en: { home_morning: "Good morning", home_afternoon: "Good afternoon", home_evening: "Good evening", home_subtitle: "Continue your learning", home_progress: "Today's progress", home_progress_count: "{n}/{max} words reviewed", home_continue: "Continue", home_explore: "Explore games", home_word_of_day: "Word of the day" }
+};
+Object.keys(HOME_COPY).forEach(code => Object.assign(LOCALES[code], HOME_COPY[code]));
+const TRANSLATE_PAGE_COPY = {
+  ar: { traduire_subtitle: "ترجم فورًا بين لغاتك" },
+  fr: { traduire_subtitle: "Traduisez instantanément" },
+  en: { traduire_subtitle: "Translate instantly" }
+};
+Object.keys(TRANSLATE_PAGE_COPY).forEach(code => Object.assign(LOCALES[code], TRANSLATE_PAGE_COPY[code]));
+const STATS_PAGE_COPY = {
+  ar: { stats_subtitle: "تقدمك", stats_best_streak: "أفضل سلسلة", stats_mastery: "الإتقان", stats_weekly: "النشاط الأسبوعي", stats_monthly: "النشاط الشهري", stats_year_progress: "تقدم السنة", stats_activity_count: "مراجعة: {reviewed} · إضافة: {added}" },
+  fr: { stats_subtitle: "Votre progression", stats_best_streak: "Meilleure série", stats_mastery: "Maîtrise", stats_weekly: "Activité de la semaine", stats_monthly: "Activité mensuelle", stats_year_progress: "Progression de l’année", stats_activity_count: "Révisés : {reviewed} · Ajoutés : {added}" },
+  en: { stats_subtitle: "Your progress", stats_best_streak: "Best streak", stats_mastery: "Mastery", stats_weekly: "Weekly activity", stats_monthly: "Monthly activity", stats_year_progress: "Year progress", stats_activity_count: "Reviewed: {reviewed} · Added: {added}" }
+};
+Object.keys(STATS_PAGE_COPY).forEach(code => Object.assign(LOCALES[code], STATS_PAGE_COPY[code]));
+const SETTINGS_PAGE_COPY = {
+  ar: { settings_page_title: "الإعدادات", settings_appearance: "المظهر", settings_language: "اللغة", settings_audio: "الصوت", settings_account: "الحساب", settings_data: "البيانات" },
+  fr: { settings_page_title: "Réglages", settings_appearance: "Apparence", settings_language: "Langue", settings_audio: "Audio", settings_account: "Compte", settings_data: "Données" },
+  en: { settings_page_title: "Settings", settings_appearance: "Appearance", settings_language: "Language", settings_audio: "Audio", settings_account: "Account", settings_data: "Data" }
+};
+Object.keys(SETTINGS_PAGE_COPY).forEach(code => Object.assign(LOCALES[code], SETTINGS_PAGE_COPY[code]));
+const AUTH_GOOGLE_STATUS_COPY = {
+  ar: { authGoogleLoading: "جاري تحميل تسجيل الدخول عبر Google...", authGoogleUnavailable: "تسجيل الدخول عبر Google غير متاح الآن." },
+  fr: { authGoogleLoading: "Chargement de la connexion Google...", authGoogleUnavailable: "La connexion Google est indisponible pour le moment." },
+  en: { authGoogleLoading: "Loading Google Sign-In...", authGoogleUnavailable: "Google Sign-In is currently unavailable." }
+};
+Object.keys(AUTH_GOOGLE_STATUS_COPY).forEach(code => Object.assign(LOCALES[code], AUTH_GOOGLE_STATUS_COPY[code]));
+const FLASHCARD_ACTION_COPY = {
+  ar: { flashcardKnow: "أعرفها", flashcardDontKnow: "لا أعرفها" },
+  fr: { flashcardKnow: "Je sais", flashcardDontKnow: "Je ne sais pas" },
+  en: { flashcardKnow: "I know", flashcardDontKnow: "I don't know" },
+  es: { flashcardKnow: "La sé", flashcardDontKnow: "No la sé" },
+  de: { flashcardKnow: "Ich weiß es", flashcardDontKnow: "Ich weiß es nicht" },
+  pt: { flashcardKnow: "Eu sei", flashcardDontKnow: "Não sei" },
+  ja: { flashcardKnow: "わかる", flashcardDontKnow: "わからない" }
+};
+Object.keys(FLASHCARD_ACTION_COPY).forEach(code => Object.assign(LOCALES[code], FLASHCARD_ACTION_COPY[code]));
 const AUTH_ENDPOINTS = {
   requestOtp: "/auth/email/request-otp/",
   verifyOtp: "/auth/email/verify-otp/",
@@ -652,6 +692,7 @@ const UI_ICON_SHAPES = {
   muscles: <><path d="M3 19c2-2 3-5 4-8l3 1 2-5 3-2 2 2-2 4 3 1 3 4-3 5H7l-4-2ZM10 12l3 3"/></>,
   sparkle: <><path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2ZM19 2v3M17.5 3.5h3"/></>,
   bookOpen: <><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"/></>,
+  copy: <><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></>,
   mail: <><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></>,
   lock: <><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v3"/></>,
   signOut: <><path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5M14 7l5 5-5 5M8 12h11"/></>,
@@ -904,21 +945,36 @@ const DEFAULT_SETS = [{
   ]
 }];
 
-function ProfileCard({ user, usage, savedCount, onAvatarClick }) {
-  const { t } = useI18n();
+function ProfileCard({ user, usage, savedCount, onAvatarClick, variant }) {
+  const { t, locale } = useI18n();
   const initial = user?.name ? user.name.charAt(0).toUpperCase() : <UiIcon name="user" size={28} />;
-  const greeting = user?.name ? `${t("welcomeBack")}, ${user.name}!` : t("welcomeGuest");
+  if (variant === "home") {
+    const hour = new Date().getHours();
+    const greetingKey = hour < 12 ? "home_morning" : hour < 18 ? "home_afternoon" : "home_evening";
+    const displayName = user?.name || user?.email?.split("@")[0] || t("guest");
+    return (
+      <header className="home-welcome stagger-enter" style={{ '--index': 0 }}>
+        <div className="home-welcome-copy">
+          <h2 className="home-welcome-title">{t(greetingKey)}{locale === "ar" ? "، " : ", "}{displayName}</h2>
+          <p className="home-welcome-subtitle">{t("home_subtitle")}</p>
+        </div>
+        <button type="button" className="home-avatar" onClick={onAvatarClick} aria-label={t("changePic")} title={t("changePic")}>
+          {user?.avatar || user?.avatar_url ? <img src={user.avatar || user.avatar_url} alt="" /> : initial}
+        </button>
+      </header>
+    );
+  }
   return (
-    <div className="profile-card">
+    <div className="profile-card ui-card">
       <div className="profile-header">
-        <div className="avatar" onClick={onAvatarClick} title={t("changePic")}>{user?.avatar || user?.avatar_url ? <img src={user.avatar || user.avatar_url} alt="profile" /> : initial}</div>
+        <button type="button" className="avatar" onClick={onAvatarClick} title={t("changePic")} aria-label={t("changePic")}>{user?.avatar || user?.avatar_url ? <img src={user.avatar || user.avatar_url} alt="" /> : initial}</button>
         <div className="profile-info">
-          <div className="profile-greeting">{greeting} <span className="wave"><WaveIcon size={22} color="var(--color-primary)" /></span></div>
-          <div className="profile-note">{t("guestNote")}</div>
+          <div className="profile-greeting">{user?.name || user?.email?.split("@")[0] || t("guest")}</div>
+          <div className="profile-note">{user?.email || t("guestNote")}</div>
         </div>
       </div>
       <div className="profile-stats">
-        <div className="stat-item"><FlameIconEnhanced level={usage.level} /><span><div className="stat-label">{t("level")}</div></span></div>
+        <div className="stat-item"><FlameIconEnhanced level={usage.level} /><span><span className="value">{usage.level}</span><div className="stat-label">{t("level")}</div></span></div>
         <div className="stat-item"><ClockIcon size={24} /><span><span className="value">{usage.fmt(usage.today)}</span><div className="stat-label">{t("today")}</div></span></div>
         <div className="stat-item"><GemIcon size={24} color="var(--color-primary)" /><span><span className="value">{savedCount}</span><div className="stat-label">{t("saved")}</div></span></div>
       </div>
@@ -958,7 +1014,7 @@ function SelectSetDropdown({ sets, currentSetId, onSelect, onEdit, onDelete, onC
       </button>
       {open && (
         <div className="dropdown-menu">
-          <input className="dropdown-search" value={q} onChange={e => setQ(e.target.value)} placeholder={t("search")} autoFocus />
+          <input className="dropdown-search ui-input" value={q} onChange={e => setQ(e.target.value)} placeholder={t("search")} autoFocus />
           {showEssential && (
             <div className="dropdown-item essential" onClick={() => { setOpen(false); onOpenEssential(); }}>
               <span className="essential-folder-emoji"><EssentialFolderIcon size={30} /></span>
@@ -980,8 +1036,8 @@ function SelectSetDropdown({ sets, currentSetId, onSelect, onEdit, onDelete, onC
                   <div className="dropdown-item-meta">{set.words.length} {t("words")}</div>
                 </div>
                 <div className="dropdown-item-actions">
-                  <button type="button" className="icon-btn" title={t("edit")} onClick={(e) => { e.stopPropagation(); onEdit(set.id); setOpen(false); }}><EditIcon /></button>
-                  <button type="button" className="icon-btn danger" title={t("delete")} onClick={(e) => { e.stopPropagation(); if (confirm(t("confirmDeleteSet"))) onDelete(set.id); }}><TrashIcon /></button>
+                  <button type="button" className="icon-btn ui-btn-icon" title={t("edit")} onClick={(e) => { e.stopPropagation(); onEdit(set.id); setOpen(false); }}><EditIcon /></button>
+                  <button type="button" className="icon-btn danger ui-btn-danger" title={t("delete")} onClick={(e) => { e.stopPropagation(); if (confirm(t("confirmDeleteSet"))) onDelete(set.id); }}><TrashIcon /></button>
                 </div>
               </div>
             );

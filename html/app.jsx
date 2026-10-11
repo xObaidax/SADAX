@@ -22,11 +22,76 @@ async function folderRequest(url, method, payload) {
 const folderPayload = set => ({ client_id: String(set.id), name: set.name, lang1: set.lang1, lang2: set.lang2, files: set.files || [] });
 const warnFolderSync = error => console.warn(error.status === 404 ? "Folder API is unavailable; keeping local folders." : "Folder sync failed; keeping local folders.", error);
 
+function GameScene({ type }) {
+  const primary = "var(--color-primary)", soft = "var(--color-primary-soft)";
+  const secondary = "var(--color-secondary)", secondarySoft = "var(--color-secondary-soft)";
+  const muted = "var(--color-text-muted)";
+  if (type === "flashcards") return (
+    <svg viewBox="0 0 320 120" fill="none" aria-hidden="true" focusable="false">
+      <rect x="93" y="24" width="134" height="76" rx="13" fill={secondarySoft} stroke={secondary} strokeWidth="2" transform="rotate(-11 160 62)" />
+      <rect x="105" y="20" width="134" height="76" rx="13" fill={soft} stroke={primary} strokeWidth="2" transform="rotate(7 172 58)" />
+      <g transform="rotate(-3 166 56)">
+        <rect x="99" y="18" width="134" height="76" rx="13" fill="var(--color-card)" stroke={primary} strokeWidth="2" />
+        <rect x="119" y="43" width="68" height="7" rx="3.5" fill={primary} />
+        <rect x="119" y="60" width="95" height="6" rx="3" fill={muted} opacity=".55" />
+        <circle cx="206" cy="40" r="7" fill={secondary} />
+      </g>
+    </svg>
+  );
+  if (type === "mcq") return (
+    <svg viewBox="0 0 320 120" fill="none" aria-hidden="true" focusable="false">
+      {[17, 48, 79].map((y, i) => <g key={y}>
+        <rect x="78" y={y} width="164" height="25" rx="10" fill={i === 1 ? soft : "var(--color-card)"} stroke={i === 1 ? primary : muted} strokeWidth="2" opacity={i === 1 ? 1 : .6} />
+        <circle cx="96" cy={y + 12.5} r="6" fill={i === 1 ? primary : secondarySoft} stroke={i === 1 ? primary : secondary} strokeWidth="2" />
+        {i === 1 ? <path d="m93 60 3 3 5-6" stroke="var(--color-card)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /> : <rect x="113" y={y + 10} width={i === 0 ? 84 : 66} height="5" rx="2.5" fill={muted} opacity=".55" />}
+      </g>)}
+    </svg>
+  );
+  if (type === "spelling") return (
+    <svg viewBox="0 0 320 120" fill="none" aria-hidden="true" focusable="false">
+      <rect x="74" y="41" width="46" height="46" rx="10" fill={soft} stroke={primary} strokeWidth="2" transform="rotate(-8 97 64)" />
+      <rect x="129" y="36" width="46" height="46" rx="10" fill="var(--color-card)" stroke={primary} strokeWidth="2" />
+      <rect x="183" y="42" width="46" height="46" rx="10" fill={secondarySoft} stroke={secondary} strokeWidth="2" transform="rotate(7 206 65)" />
+      <text x="86" y="72" fill={primary} fontSize="21" fontWeight="700">A</text>
+      <text x="144" y="68" fill={primary} fontSize="21" fontWeight="700">B</text>
+      <text x="198" y="73" fill={secondary} fontSize="21" fontWeight="700">C</text>
+      <path d="M152 15v14" stroke={secondary} strokeWidth="2" strokeLinecap="round" />
+      <circle cx="246" cy="80" r="13" fill={secondarySoft} stroke={secondary} strokeWidth="2" />
+      <path d="m240 80 4 4 8-9" stroke={secondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+  if (type === "matching") return (
+    <svg viewBox="0 0 320 120" fill="none" aria-hidden="true" focusable="false">
+      {[18, 48, 78].map((y, i) => <g key={y}>
+        <rect x="51" y={y} width="74" height="23" rx="9" fill={i === 1 ? soft : "var(--color-card)"} stroke={primary} strokeWidth="2" />
+        <rect x="195" y={y} width="74" height="23" rx="9" fill={i === 1 ? secondarySoft : "var(--color-card)"} stroke={secondary} strokeWidth="2" />
+        <rect x="68" y={y + 9} width="38" height="5" rx="2.5" fill={muted} opacity=".65" />
+        <rect x="212" y={y + 9} width="38" height="5" rx="2.5" fill={muted} opacity=".65" />
+      </g>)}
+      <path d="M125 29c38 0 32 60 70 60M125 89c37 0 33-60 70-60" stroke={muted} strokeWidth="2" strokeDasharray="3 5" strokeLinecap="round" opacity=".55" />
+      <path d="M125 59c35 0 35 0 70 0" stroke={primary} strokeWidth="2" strokeDasharray="3 5" strokeLinecap="round" />
+    </svg>
+  );
+  return (
+    <svg viewBox="0 0 320 120" fill="none" aria-hidden="true" focusable="false">
+      <path d="M78 64V53a35 35 0 0 1 70 0v11" stroke={primary} strokeWidth="4" strokeLinecap="round" />
+      <rect x="72" y="59" width="17" height="32" rx="8" fill={soft} stroke={primary} strokeWidth="2" />
+      <rect x="137" y="59" width="17" height="32" rx="8" fill={soft} stroke={primary} strokeWidth="2" />
+      <path d="M166 53q12 10 0 20m11-28q20 18 0 36" stroke={secondary} strokeWidth="2" strokeLinecap="round" />
+      <rect x="203" y="30" width="88" height="66" rx="12" fill="var(--color-card)" stroke={secondary} strokeWidth="2" />
+      <rect x="217" y="48" width="57" height="5" rx="2.5" fill={primary} />
+      <rect x="217" y="62" width="43" height="5" rx="2.5" fill={muted} opacity=".6" />
+      <rect x="217" y="76" width="52" height="5" rx="2.5" fill={muted} opacity=".6" />
+    </svg>
+  );
+}
+
 function AppContent() {
   const { t, locale, setLocale, langs } = useI18n();
   const toast = useToast();
   const usage = useUsage();
   const { stats, trackWordAdded, trackReview, trackGame } = useRealStats();
+  const { speakText } = useSpeech();
   const { theme, toggle: toggleTheme } = useTheme();
   const [sets, setSets] = useLocalStorage("vocaflow_sets", DEFAULT_SETS);
   const [user, setUser] = useState(null);
@@ -36,10 +101,11 @@ function AppContent() {
   const googleButtonRef = useRef(null);
   const googleCallbackRef = useRef(null);
   const googleInitializedRef = useRef(false);
+  const [googleButtonStatus, setGoogleButtonStatus] = useState("loading");
   const [savedIds, setSavedIds] = useLocalStorage("vocaflow_saved", []);
   const [voiceSettings, setVoiceSettings] = useLocalStorage("vocaflow_voice", { rate: 0.9, pitch: 1.0 });
   const [view, setView] = useState("home");
-  const [mainTab, setMainTab] = useState("games");
+  const [mainTab, setMainTab] = useState("home");
   const [translatorDraft, setTranslatorDraft] = useState({ sourceLang: "fr", targetLang: "ar", sourceText: "", result: "" });
   const [currentSetId, setCurrentSetId] = useState(sets[0]?.id || null);
   const [playAllFiles, setPlayAllFiles] = useState(true);
@@ -150,9 +216,11 @@ function AppContent() {
   }, []);
   useEffect(() => {
     if (modal !== "login" || loginStep !== "email" || otpPurpose !== "login" || !googleButtonRef.current) return;
+    setGoogleButtonStatus("loading");
     const clientId = (window.__GOOGLE_CLIENT_ID__ || "").trim();
     if (!clientId) {
       console.warn("[SADAX Google] Client ID is missing.");
+      setGoogleButtonStatus("unavailable");
       return;
     }
     let cancelled = false;
@@ -195,9 +263,11 @@ function AppContent() {
           width: 320,
           locale: "fr"
         });
+        setGoogleButtonStatus("ready");
         console.log("[SADAX Google] Sign-In button requested");
       } catch (error) {
         console.warn("[SADAX Google] initialization failed", error);
+        setGoogleButtonStatus("unavailable");
       }
     };
     waitForGSI();
@@ -223,6 +293,20 @@ function AppContent() {
   const savedWords = sets.flatMap(s => s.words.filter(w => savedIds.includes(w.id)).map(w => ({ ...w, lang1: s.lang1, lang2: s.lang2 })));
   const savedSet = savedWords.length ? { id: "saved", name: t("sanctuary"), lang1: savedWords[0].lang1, lang2: savedWords[0].lang2, words: savedWords } : null;
   const totalWords = sets.reduce((acc, s) => acc + s.words.length, 0);
+  const masteredCount = sets.reduce((acc, set) => acc + set.words.filter(word => Number(word.mastery_level) > 0).length, 0);
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayReviewed = stats.dailyActivity?.[todayKey]?.reviewed || 0;
+  const dailyGoal = 5;
+  let homeStreak = 0;
+  for (let i = 0; i < 365; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const activity = stats.dailyActivity?.[date.toISOString().slice(0, 10)];
+    if ((activity?.reviewed || 0) > 0 || (activity?.added || 0) > 0) homeStreak++;
+    else if (i > 0) break;
+  }
+  const dailyWordSet = currentSet?.words.length ? currentSet : sets.find(set => set.words.length);
+  const dailyWord = dailyWordSet?.words[new Date().getDate() % dailyWordSet.words.length];
   const playableWords = currentSet ? (playAllFiles ? currentSet.words : currentSet.words.filter(word => selectedFileIds.includes(word.fileId))) : [];
   const hasFileSelection = playAllFiles || selectedFileIds.length > 0;
   const fileSelectionHint = locale === "ar" ? "اختر ملفًا واحدًا على الأقل أو الكل" : locale === "fr" ? "Sélectionnez au moins un fichier ou Tous" : "Select at least one file or All";
@@ -470,16 +554,32 @@ function AppContent() {
   const startGame = (type) => {
     if (type === "saved") {
       if (!savedWords.length) { toast(t("noSaved"), "error"); return; }
+      try { localStorage.setItem("vocaflow_last_game", type); } catch {}
       setGameType("saved"); setRetryWrong(false); setGameKey(Date.now()); setView("game");
       return;
     }
     if (type === "dictee") {
+      try { localStorage.setItem("vocaflow_last_game", type); } catch {}
       setGameType("dictee"); setRetryWrong(false); setGameKey(Date.now()); setView("game");
       return;
     }
     if (!currentSet) { toast(t("needSelectSet"), "error"); return; }
     if (!playableWords.length) { toast(t("noWords"), "error"); return; }
+    try { localStorage.setItem("vocaflow_last_game", type); } catch {}
     setGameType(type); setRetryWrong(false); setGameKey(Date.now()); setView("game");
+  };
+  const continueLearning = () => {
+    let lastGame = null;
+    try { lastGame = localStorage.getItem("vocaflow_last_game"); } catch {}
+    if (!currentSet) { setMainTab("games"); return; }
+    const folderReady = currentSet && playableWords.length > 0;
+    if (lastGame === "dictee" || (lastGame === "saved" && savedWords.length) || (folderReady && ["flashcards", "mcq", "spelling", "matching"].includes(lastGame))) {
+      startGame(lastGame);
+    } else if (folderReady) {
+      startGame("flashcards");
+    } else {
+      setMainTab("games");
+    }
   };
   const finishGame = (results) => {
     const total = results.length;
@@ -553,11 +653,11 @@ function AppContent() {
     } catch (error) { toast(error.message, "error"); }
   };
   const games = [
-    { type: "flashcards", name: t("flashcards"), color: "#C9A84C", icon: <CardsIcon active={true} /> },
-    { type: "mcq", name: t("mcq"), color: "#2D6A4F", icon: <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="6" width="40" height="10" rx="4" fill="var(--color-text)" stroke="var(--color-primary)" strokeWidth="2"/><rect x="4" y="19" width="40" height="10" rx="4" fill="var(--color-text)" stroke="var(--color-primary)" strokeWidth="2" opacity="0.6"/><rect x="4" y="32" width="40" height="10" rx="4" fill="var(--color-text)" stroke="var(--color-primary)" strokeWidth="2" opacity="0.4"/><circle cx="12" cy="11" r="3" fill="var(--color-primary)"/><path d="M10 11l2 2 3-3" stroke="var(--color-text)" strokeWidth="2" strokeLinecap="round"/></svg> },
-    { type: "spelling", name: t("spelling"), color: "#C9A84C", icon: <svg viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="32" rx="4" fill="var(--color-text)" stroke="var(--color-primary)" strokeWidth="2"/><path d="M12 30l6-12 6 12" stroke="var(--color-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/><path d="M28 30h8" stroke="var(--color-primary)" strokeWidth="3" strokeLinecap="round"/><circle cx="38" cy="14" r="3" fill="var(--color-primary)"/></svg> },
-    { type: "matching", name: t("matching"), color: "#7B2D2D", icon: <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="6" width="16" height="16" rx="3" fill="var(--color-text)" stroke="var(--color-primary)" strokeWidth="2"/><rect x="28" y="26" width="16" height="16" rx="3" fill="var(--color-text)" stroke="var(--color-primary)" strokeWidth="2"/><path d="M20 14h4a4 4 0 0 1 4 4v10" stroke="var(--color-primary)" strokeWidth="2.5" fill="none" strokeLinecap="round"/><circle cx="12" cy="14" r="2" fill="var(--color-primary)"/><circle cx="36" cy="34" r="2" fill="var(--color-primary)"/></svg> },
-    { type: "dictee", name: t("dictee"), color: "#E8C97A", icon: <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="6" width="32" height="36" rx="4" fill="var(--color-text)" stroke="var(--color-primary)" strokeWidth="2"/><path d="M16 16h16M16 24h16M16 32h10" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round"/><circle cx="36" cy="36" r="8" fill="var(--color-primary)"/><path d="M34 36l2 2 4-4" stroke="var(--color-text)" strokeWidth="2" strokeLinecap="round"/></svg> }
+    { type: "flashcards", name: t("flashcards"), description: t("tapToFlip") },
+    { type: "mcq", name: t("mcq"), description: `${t("question")} · ${t("check")}` },
+    { type: "spelling", name: t("spelling"), description: t("typeWord") },
+    { type: "matching", name: t("matching"), description: t("matchPairs") },
+    { type: "dictee", name: t("dictee"), description: t("dicteeSubtitle") }
   ];
   const hideNav = view === 'game' || view === 'editor' || view === 'results' || modal !== null || logoutConfirm;
   return (
@@ -565,7 +665,7 @@ function AppContent() {
       {view === "home" && (
         <div>
           <div className="topbar">
-            <div className="site-logo site-logo--boxed" onClick={() => { setView("home"); setMainTab("games"); }}>
+            <div className="site-logo site-logo--boxed" onClick={() => { setView("home"); setMainTab("home"); }}>
               <span className="brand-icon-box"><LogoMark size={26} /></span>
               <h1 className="brand-wordmark"><span className="brand-h">S</span>ADAX</h1>
               <div className="tagline">{t("tagline")}</div>
@@ -574,8 +674,7 @@ function AppContent() {
               {user && <AccountNav user={user} onLogout={() => setLogoutConfirm(true)} />}
             </div>
           </div>
-          {mainTab === 'traduire' && (<TranslatePage draft={translatorDraft} setDraft={setTranslatorDraft} />)}
-          {mainTab === 'games' && (
+          {mainTab === 'home' && (
             <div className="tab-content">
               {authChecked && !user && totalWords >= 5 && !guestNoticeDismissed && <div className="guest-notice-banner">
                 <span className="guest-notice-title">{t("guest_notice_title")}</span>
@@ -584,8 +683,32 @@ function AppContent() {
                   <button type="button" className="guest-notice-dismiss" onClick={() => { setGuestNoticeDismissed(true); try { localStorage.setItem("vocaflow_guest_notice_dismissed", "1"); } catch {} }}>{t("guest_notice_dismiss")}</button>
                 </div>
               </div>}
-              <ProfileCard user={user} usage={usage} savedCount={savedWords.length} onAvatarClick={() => document.getElementById("avatar-upload").click()} />
+              <ProfileCard variant="home" user={user} usage={usage} savedCount={savedWords.length} onAvatarClick={() => document.getElementById("avatar-upload").click()} />
               <input type="file" id="avatar-upload" accept="image/*" style={{ display: "none" }} onChange={e => handleAvatarUpload(e.target.files[0])} />
+              <div className="home-stats-strip">
+                <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 1 }}><strong>{totalWords}</strong><span>{t("totalWords")}</span></div>
+                <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 2 }}><strong>{homeStreak}</strong><span>{t("daysStreak")}</span></div>
+                <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 3 }}><strong>{usage.level}</strong><span>{t("level")}</span></div>
+              </div>
+              <section className="home-progress ui-card stagger-enter" style={{ '--index': 4 }}>
+                <h3>{t("home_progress")}</h3>
+                <div className="home-progress-track" role="progressbar" aria-valuenow={Math.min(todayReviewed, dailyGoal)} aria-valuemin="0" aria-valuemax={dailyGoal} aria-label={t("home_progress")}><div className="home-progress-fill" style={{ width: `${Math.min(100, todayReviewed / dailyGoal * 100)}%` }} /></div>
+                <p>{t("home_progress_count").replace("{n}", todayReviewed).replace("{max}", dailyGoal)}</p>
+              </section>
+              <div className="home-actions stagger-enter" style={{ '--index': 5 }}>
+                <button type="button" className="ui-btn ui-btn-primary" onClick={continueLearning}>{t("home_continue")}</button>
+                <button type="button" className="ui-btn ui-btn-secondary" onClick={() => setMainTab("games")}>{t("home_explore")}</button>
+              </div>
+              <section className="home-daily-word ui-card stagger-enter" style={{ '--index': 6 }}>
+                <h3>{t("home_word_of_day")}</h3>
+                {dailyWord ? <div className="home-daily-word-content"><div><strong lang={dailyWordSet.lang1}>{dailyWord.word}</strong><span lang={dailyWordSet.lang2}>{dailyWord.translation}</span></div><button type="button" className="ui-btn-icon" onClick={() => speakText(dailyWord.word, dailyWordSet.lang1)} aria-label={t("traduire_speak")}><SpeakerIcon size={20} /></button></div> : <p>{t("noWords")}</p>}
+              </section>
+              <div className="stagger-enter" style={{ '--index': 7 }}><Sanctuary count={savedWords.length} onPlay={() => startGame("saved")} /></div>
+            </div>
+          )}
+          {mainTab === 'traduire' && (<TranslatePage draft={translatorDraft} setDraft={setTranslatorDraft} />)}
+          {mainTab === 'games' && (
+            <div className="tab-content">
               <div style={{ marginTop: 20 }}>
                 <SelectSetDropdown
                   sets={sets}
@@ -596,7 +719,7 @@ function AppContent() {
                   onCreate={() => setModal("createSet")}
                   onOpenEssential={() => setModal("essential")}
                 />
-                {currentSet && <div className="game-file-select-panel">
+                {currentSet && <div className="game-file-select-panel ui-card">
                   <h3 className="game-file-select-title">{t("game_select_files")}</h3>
                   <div className="game-file-select-options">
                     <label className="game-file-select-option"><input type="checkbox" checked={playAllFiles} onChange={e => { setPlayAllFiles(e.target.checked); if (e.target.checked) setSelectedFileIds([]); }} /> {t("game_select_all")}</label>
@@ -605,43 +728,63 @@ function AppContent() {
                   <button type="button" className="game-file-select-start" onClick={() => startGame("flashcards")} disabled={!hasFileSelection || !playableWords.length}>{t("game_start_selected")}</button>
                   {!hasFileSelection && <div className="game-file-select-hint" role="status">{fileSelectionHint}</div>}
                 </div>}
-                <Sanctuary count={savedWords.length} onPlay={() => startGame("saved")} />
                 <div className="games-header-wrap">
                   <h2 className="games-header-title main-page-title"><span className="header-emoji"><GamepadIcon size={28} color="var(--color-primary)" /></span> {t("games")}</h2>
                   <div className="games-header-desc"><RocketIcon size={14} color="var(--color-primary)" /> {t("gamesDesc")}</div>
                 </div>
                 <div className="games-grid">
-                  {games.map(g => (
-                    <div key={g.type} className="game-card" role="button" tabIndex={0} onClick={() => startGame(g.type)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startGame(g.type); } }}>
-                      <div className="game-icon-wrap" style={{ background: `${g.color}20` }}>{g.icon}</div>
+                  {games.map((g, i) => (
+                    <div key={g.type} className="game-card stagger-enter" role="button" tabIndex={0} style={{ '--index': i }} onClick={() => startGame(g.type)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startGame(g.type); } }}>
+                      <div className="game-illustration"><GameScene type={g.type} /></div>
                       <div className="game-name">{g.name}</div>
+                      <div className="game-description">{g.description}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           )}
-          {mainTab === 'stats' && (<ActivityView usage={usage} totalWords={totalWords} stats={stats} />)}
+          {mainTab === 'stats' && (<ActivityView usage={usage} totalWords={totalWords} masteredCount={masteredCount} stats={stats} />)}
           {mainTab === 'settings' && (
             <div className="tab-content settings-page">
-              <h2 className="main-page-title settings-page-title">{t("settings")}</h2>
-              <ProfileCard user={user} usage={usage} savedCount={savedWords.length} onAvatarClick={() => document.getElementById("avatar-upload2").click()} />
+              <h2 className="main-page-title settings-page-title">{t("settings_page_title")}</h2>
               <input type="file" id="avatar-upload2" accept="image/*" style={{ display: "none" }} onChange={e => handleAvatarUpload(e.target.files[0])} />
-              <div style={{ marginTop: 20 }}>
-                <div className="theme-toggle-row" role="switch" aria-checked={theme === "dark"} aria-label={theme === "light" ? t("darkMode") : t("lightMode")} tabIndex={0} onClick={toggleTheme} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } }}>
+              <section className="settings-section ui-card stagger-enter" style={{ '--index': 0, '--stagger-step': '60ms' }}>
+                <h3>{t("settings_appearance")}</h3>
+                <div className="theme-toggle-row ui-card-compact" role="switch" aria-checked={theme === "dark"} aria-label={theme === "light" ? t("darkMode") : t("lightMode")} tabIndex={0} onClick={toggleTheme} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } }}>
                   <span className="theme-toggle-label">{theme === "light" ? <MoonIcon size={20} /> : <SunIcon size={20} />}{theme === "light" ? t("darkMode") : t("lightMode")}</span>
                   <div className={`theme-toggle-switch ${theme === "dark" ? "active" : ""}`} />
                 </div>
+              </section>
+              <section className="settings-section ui-card stagger-enter" style={{ '--index': 1, '--stagger-step': '60ms' }}>
+                <h3>{t("settings_language")}</h3>
+                <div className="field"><label htmlFor="settings-language"><UiIcon name="globe" size={18} /> {t("language")}</label><select id="settings-language" className="ui-input" value={locale} onChange={e => setLocale(e.target.value)}>{langs.map(l => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}</select></div>
+              </section>
+              <section className="settings-section ui-card stagger-enter" style={{ '--index': 2, '--stagger-step': '60ms' }}>
+                <h3>{t("settings_audio")}</h3>
+                <div className="field"><label htmlFor="settings-rate"><UiIcon name="bolt" size={18} /> {t("speechRate")}: {voiceSettings.rate.toFixed(2)}</label><div className="slider-wrap"><UiIcon name="turtle" size={18} /><input id="settings-rate" type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.rate} onChange={e => setVoiceSettings({ ...voiceSettings, rate: parseFloat(e.target.value) })} /><UiIcon name="rabbit" size={18} /><span className="slider-value">{voiceSettings.rate.toFixed(2)}</span></div></div>
+                <div className="field"><label htmlFor="settings-pitch"><UiIcon name="music" size={18} /> {t("pitch")}: {voiceSettings.pitch.toFixed(2)}</label><div className="slider-wrap"><UiIcon name="arrowDown" size={18} /><input id="settings-pitch" type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.pitch} onChange={e => setVoiceSettings({ ...voiceSettings, pitch: parseFloat(e.target.value) })} /><UiIcon name="arrowUp" size={18} /><span className="slider-value">{voiceSettings.pitch.toFixed(2)}</span></div></div>
+              </section>
+              <section className="settings-section settings-account ui-card stagger-enter" style={{ '--index': 3, '--stagger-step': '60ms' }}>
+                <h3>{t("settings_account")}</h3>
+                <ProfileCard user={user} usage={usage} savedCount={savedWords.length} onAvatarClick={() => document.getElementById("avatar-upload2").click()} />
                 {!user ? (
-                   <button type="button" className="btn btn-primary btn-block" onClick={() => startLogin("login")} style={{ marginTop: 10 }}><UiIcon name="lock" /> {t("login")}</button>
+                   <button type="button" className="ui-btn ui-btn-primary btn-block" onClick={() => startLogin("login")}><UiIcon name="lock" /> {t("login")}</button>
                 ) : (
-                   <div>
-                     <button type="button" className="btn btn-secondary btn-block" onClick={() => startLogin("backup")} style={{ marginTop: 10 }}><UiIcon name="mail" /> {t("backupEmail")}</button>
-                     <button type="button" className="btn btn-danger btn-block" onClick={() => setLogoutConfirm(true)} style={{ marginTop: 10 }}><UiIcon name="signOut" /> {t("logout")}</button>
+                   <div className="settings-account-actions">
+                     {SHOW_EMAIL_LOGIN && <button type="button" className="ui-btn ui-btn-secondary btn-block" onClick={() => startLogin("backup")}><UiIcon name="mail" /> {t("backupEmail")}</button>}
+                     <button type="button" className="ui-btn ui-btn-danger btn-block" onClick={() => setLogoutConfirm(true)}><UiIcon name="signOut" /> {t("logout")}</button>
                    </div>
                 )}
-                <button type="button" className="btn btn-secondary btn-block" onClick={() => setModal("settings")} style={{ marginTop: 10 }}><GearIcon /> {t("settings")}</button>
-              </div>
+              </section>
+              <section className="settings-section ui-card stagger-enter" style={{ '--index': 4, '--stagger-step': '60ms' }}>
+                <h3>{t("settings_data")}</h3>
+                <div className="settings-data-actions">
+                  <button type="button" className="ui-btn ui-btn-secondary" onClick={handleExport}><UiIcon name="download" /> {t("exportData")}</button>
+                  <label className="file-upload-wrap ui-btn ui-btn-secondary"><FolderIcon size={18} /> {t("importData")}<input type="file" accept=".json" onChange={e => handleImport(e.target.files[0])} /></label>
+                  <button type="button" className="ui-btn ui-btn-danger" onClick={handleReset}><TrashIcon /> {t("resetAll")}</button>
+                </div>
+              </section>
             </div>
           )}
         </div>
@@ -701,7 +844,7 @@ function AppContent() {
               <div className="essential-more">+ {ESSENTIAL_WORDS.length - 8} {t("words")}</div>
             </div>
             <div className="modal-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>{t("cancel")}</button>
+              <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => setModal(null)}>{t("cancel")}</button>
               <button type="button" className="btn btn-primary" onClick={openEssentialFolder}><FolderIcon /> {t("openFolder")}</button>
             </div>
           </div>
@@ -717,7 +860,7 @@ function AppContent() {
               <div className="field"><label>{t("secondLang")}</label><select value={newSet.lang2} onChange={e => setNewSet({ ...newSet, lang2: e.target.value })}>{langs.map(l => (<option key={l.code} value={l.code}>{l.flag} {l.name}</option>))}</select></div>
             </div>
             <div className="modal-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>{t("cancel")}</button>
+              <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => setModal(null)}>{t("cancel")}</button>
               <button type="button" className="btn btn-primary" onClick={createSet}>{t("save")}</button>
             </div>
           </div>
@@ -751,7 +894,7 @@ function AppContent() {
               <div>
                 <div className="field"><label><BookIcon size={14} color="var(--color-primary)" /> {t("exportData")}</label><button type="button" className="btn btn-primary btn-block" onClick={handleExport}><UiIcon name="download" /> Download Backup</button></div>
                 <div className="field"><label><BookIcon size={14} color="var(--color-primary)" /> {t("importData")}</label><div className="file-upload-wrap"><FolderIcon size={18} /> Choose backup file<input type="file" accept=".json" onChange={e => handleImport(e.target.files[0])} /></div></div>
-                <div className="field" style={{ marginTop: 20 }}><label><UiIcon name="warning" size={18} /> {t("resetAll")}</label><button type="button" className="btn btn-danger btn-block" onClick={handleReset}><TrashIcon /> {t("resetAll")}</button></div>
+                <div className="field" style={{ marginTop: 20 }}><label><UiIcon name="warning" size={18} /> {t("resetAll")}</label><button type="button" className="btn btn-danger ui-btn-danger btn-block" onClick={handleReset}><TrashIcon /> {t("resetAll")}</button></div>
               </div>
             )}
             <div className="modal-actions"><button type="button" className="btn btn-primary btn-block" onClick={() => setModal(null)}>{t("close")}</button></div>
@@ -765,6 +908,7 @@ function AppContent() {
               <div className="auth-mark"><LogoMark size={49} /></div>
               <h3>{otpPurpose === "backup" ? t("backupEmail") : <>Bienvenue sur <span className="brand-wordmark">SADAX</span></>}</h3>
               <p className="auth-subtitle">{otpPurpose === "backup" ? t("backupEmailIntro") : "Connectez-vous pour sauvegarder vos progrès"}</p>
+              <div className="auth-tagline">{t("tagline")}</div>
             </div>
             <div className="auth-rule" />
             {loginStep === "email" ? (
@@ -772,6 +916,7 @@ function AppContent() {
                 {otpPurpose === "login" && (
                   <div className="auth-google-wrapper">
                     <div id="google-signin-btn" ref={googleButtonRef} aria-label="Continuer avec Google" />
+                    {googleButtonStatus !== "ready" && <div className="auth-google-status" role="status" aria-live="polite">{googleButtonStatus === "loading" && <span className="auth-google-spinner" aria-hidden="true" />}{t(googleButtonStatus === "loading" ? "authGoogleLoading" : "authGoogleUnavailable")}</div>}
                   </div>
                 )}
                 {SHOW_EMAIL_LOGIN && (

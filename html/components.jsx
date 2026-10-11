@@ -9,10 +9,10 @@ function Results({ results, onRetry, onRetryWrong, onHome }) {
   else if (pct >= 70) { label = t("good"); msg = t("msgGood"); emoji = "applause"; }
   else if (pct >= 50) { label = t("fair"); msg = t("msgFair"); emoji = "thumbsUp"; }
   return (
-    <div className="results-box glass">
+    <div className="results-box glass game-results-enter">
       <div className="results-emoji"><LearningEmoji emoji={emoji} /></div>
       <h2 style={{ fontSize: 30, fontWeight: 900, marginBottom: 10 }}>{t("results")}</h2>
-      <div className="score-circle">{pct}%</div>
+      <div className="score-circle"><AnimatedScore value={pct} suffix="%" /></div>
       <div className="muted">{t("correctAnswers")}: <strong style={{ color: "var(--primary)", fontSize: 16 }}>{correct}/{total}</strong></div>
       <div style={{ margin: "16px 0", fontWeight: 800, fontSize: 19 }}>{label}</div>
       <div className="results-message">{msg}</div>
@@ -20,7 +20,7 @@ function Results({ results, onRetry, onRetryWrong, onHome }) {
         <div className="wrong-words-section">
           <div className="wrong-words-title"><CrossIcon size={16} color="#7B2D2D" /> {t("wrongWords")}</div>
           {wrong.map((w, i) => (
-            <div key={i} className="word-row">
+            <div key={i} className="word-row ui-card-compact">
               <div>
                 <div className="word-row-text">{w.word}</div>
                 <div className="word-row-translation">→ {w.translation}</div>
@@ -30,13 +30,13 @@ function Results({ results, onRetry, onRetryWrong, onHome }) {
         </div>
       )}
       <button type="button" className="btn btn-primary btn-block btn-lg" onClick={onRetry}><RefreshIcon /> {t("retry")}</button>
-      {wrong.length > 0 && (<button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onRetryWrong}><StarIcon /> {t("retryWrong")}</button>)}
-      <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onHome}><HomeIcon /> {t("home")}</button>
+      {wrong.length > 0 && (<button type="button" className="btn btn-secondary ui-btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onRetryWrong}><StarIcon /> {t("retryWrong")}</button>)}
+      <button type="button" className="btn btn-secondary ui-btn-secondary btn-block" style={{ marginTop: 10 }} onClick={onHome}><HomeIcon /> {t("home")}</button>
     </div>
   );
 }
 
-function ActivityView({ usage, totalWords, stats }) {
+function ActivityView({ usage, totalWords, masteredCount, stats }) {
   const { t } = useI18n();
   const [sheet, setSheet] = useState({ open: false, view: 'annual', month: null });
   const [selectedDayData, setSelectedDayData] = useState(null);
@@ -51,6 +51,16 @@ function ActivityView({ usage, totalWords, stats }) {
     if (dailyActivity[key] && (dailyActivity[key].reviewed > 0 || dailyActivity[key].added > 0)) { streak++; }
     else if (i > 0) { break; }
   }
+  let bestStreak = 0;
+  let consecutiveDays = 0;
+  let previousDay = null;
+  Object.keys(dailyActivity).filter(key => (dailyActivity[key]?.reviewed || 0) > 0 || (dailyActivity[key]?.added || 0) > 0).sort().forEach(key => {
+    const day = Date.parse(`${key}T00:00:00Z`);
+    consecutiveDays = previousDay !== null && day - previousDay === 86400000 ? consecutiveDays + 1 : 1;
+    bestStreak = Math.max(bestStreak, consecutiveDays);
+    previousDay = day;
+  });
+  const masteryPercent = totalWords ? Math.round((masteredCount || 0) / totalWords * 100) : 0;
   const weekDays = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
@@ -71,15 +81,20 @@ function ActivityView({ usage, totalWords, stats }) {
   const yearReviewed = Object.keys(dailyActivity).filter(k => k.startsWith(yearStr)).reduce((s, k) => s + (dailyActivity[k].reviewed || 0), 0);
   const yearAdded = Object.keys(dailyActivity).filter(k => k.startsWith(yearStr)).reduce((s, k) => s + (dailyActivity[k].added || 0), 0);
   const yearTime = Object.entries(usage.daily || {}).filter(([k]) => k.startsWith(yearStr)).reduce((s, [, v]) => s + (v || 0), 0);
-  const getIntensity = (val) => { if (val === 0) return 0; if (val < 5) return 1; if (val < 15) return 2; return 3; };
+  const yearProgress = Math.round((Date.now() - new Date(year, 0, 1).getTime()) / (new Date(year + 1, 0, 1).getTime() - new Date(year, 0, 1).getTime()) * 100);
+  const getIntensity = (val) => { if (val === 0) return 0; if (val < 3) return 1; if (val < 7) return 2; if (val < 15) return 3; return 4; };
   const renderAnnualView = () => (
     <div>
       <div className="year-summary-bar">
-        <div className="summary-stat"><div className="summary-stat-icon"><BooksIcon size={24} /></div><div className="summary-stat-value">{yearReviewed}</div><div className="summary-stat-label">{t("reviewedWords")}</div></div>
-        <div className="summary-stat"><div className="summary-stat-icon"><PlusIcon size={18} /></div><div className="summary-stat-value">{yearAdded}</div><div className="summary-stat-label">{t("wordsAdded")}</div></div>
-        <div className="summary-stat"><div className="summary-stat-icon"><ClockIcon size={22} /></div><div className="summary-stat-value">{usage.fmt(yearTime)}</div><div className="summary-stat-label">{t("totalTime")}</div></div>
-        <div className="summary-stat"><div className="summary-stat-icon"><FlameSmallIcon size={24} /></div><div className="summary-stat-value">{streak}</div><div className="summary-stat-label">{t("daysStreak")}</div></div>
+        <div className="summary-stat stagger-enter" style={{ '--index': 0 }}><div className="summary-stat-icon"><BooksIcon size={24} /></div><div className="summary-stat-value">{yearReviewed}</div><div className="summary-stat-label">{t("reviewedWords")}</div></div>
+        <div className="summary-stat stagger-enter" style={{ '--index': 1 }}><div className="summary-stat-icon"><PlusIcon size={18} /></div><div className="summary-stat-value">{yearAdded}</div><div className="summary-stat-label">{t("wordsAdded")}</div></div>
+        <div className="summary-stat stagger-enter" style={{ '--index': 2 }}><div className="summary-stat-icon"><ClockIcon size={22} /></div><div className="summary-stat-value">{usage.fmt(yearTime)}</div><div className="summary-stat-label">{t("totalTime")}</div></div>
+        <div className="summary-stat stagger-enter" style={{ '--index': 3 }}><div className="summary-stat-icon"><FlameSmallIcon size={24} /></div><div className="summary-stat-value">{streak}</div><div className="summary-stat-label">{t("daysStreak")}</div></div>
       </div>
+      {renderMonthCards()}
+    </div>
+  );
+  const renderMonthCards = () => (
       <div className="year-grid">
         {monthNames.map((name, i) => {
           let monthReviewed = 0, monthAdded = 0;
@@ -102,7 +117,7 @@ function ActivityView({ usage, totalWords, stats }) {
           }
           const maxWeek = Math.max(1, ...weeks);
           return (
-            <div key={i} className={`month-card ${isCurrent ? 'current' : ''} ${!isActive ? 'inactive' : ''}`} onClick={() => isActive && setSheet({ ...sheet, view: 'month', month: monthKey })}>
+            <div key={i} className={`month-card ui-card stagger-enter ${isCurrent ? 'current' : ''} ${!isActive ? 'inactive' : ''}`} style={{ '--index': i }} role={isActive ? "button" : undefined} tabIndex={isActive ? 0 : undefined} onClick={() => isActive && setSheet({ open: true, view: 'month', month: monthKey })} onKeyDown={event => { if (isActive && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); setSheet({ open: true, view: 'month', month: monthKey }); } }}>
               <div className="month-name">{name}</div>
               <div className="month-sparkline">
                 {weeks.map((w, j) => (<div key={j} className={`spark-bar ${w === 0 ? 'empty' : ''}`} style={{ height: `${w === 0 ? 15 : Math.max(20, (w / maxWeek) * 100)}%` }} />))}
@@ -112,7 +127,6 @@ function ActivityView({ usage, totalWords, stats }) {
           );
         })}
       </div>
-    </div>
   );
   const renderMonthView = () => {
     const [y, m] = sheet.month.split('-').map(Number);
@@ -138,7 +152,7 @@ function ActivityView({ usage, totalWords, stats }) {
           <div className="day-detail-popover">
             <div className="popover-header">
               <div className="popover-title">{monthNames[m - 1]} {selectedDayData.dayNum}, {y}</div>
-              <button className="sheet-close" onClick={() => setSelectedDayData(null)} aria-label="Close"><CloseIcon /></button>
+              <button className="sheet-close ui-btn-icon" onClick={() => setSelectedDayData(null)} aria-label="Close"><CloseIcon /></button>
             </div>
             <div className="popover-stat"><span className="popover-stat-label"><BookIcon size={14} color="var(--color-primary)" /> {t("reviewedWords")}</span><span className="popover-stat-value">{selectedDayData.data.reviewed || 0}</span></div>
             <div className="popover-stat"><span className="popover-stat-label"><PlusIcon size={14} /> {t("wordsAdded")}</span><span className="popover-stat-value">{selectedDayData.data.added || 0}</span></div>
@@ -153,24 +167,30 @@ function ActivityView({ usage, totalWords, stats }) {
   const hasActivity = (stats.wordsReviewed || 0) > 0 || (stats.wordsAdded || 0) > 0 || (stats.gamesPlayed || 0) > 0 || weekTimeTotal > 0;
   return (
     <div className="activity-view">
-      <div className="stats-header-row"><h2><StatsIcon active={true} /> {t("stats")}</h2></div>
-      {!hasActivity ? (
-        <div className="stats-empty-state">
+      <div className="stats-header-row"><div><h2 className="main-page-title"><StatsIcon active={true} /> {t("stats")}</h2><p className="stats-subtitle">{t("stats_subtitle")}</p></div></div>
+      <div className="stats-totals-grid stats-kpi-grid">
+        <div className="total-card ui-card ui-card-compact stagger-enter" style={{ '--index': 0, '--stagger-step': '60ms' }}><div className="total-icon"><BooksIcon /></div><div className="total-value">{totalWords}</div><div className="total-label">{t("totalWords")}</div></div>
+        <div className="total-card ui-card ui-card-compact stagger-enter" style={{ '--index': 1, '--stagger-step': '60ms' }}><div className="total-icon"><FlameSmallIcon /></div><div className="total-value">{streak}</div><div className="total-label">{t("streak")}</div></div>
+        <div className="total-card ui-card ui-card-compact stagger-enter" style={{ '--index': 2, '--stagger-step': '60ms' }}><div className="total-icon"><TrophyIcon /></div><div className="total-value">{bestStreak}</div><div className="total-label">{t("stats_best_streak")}</div></div>
+        <div className="total-card ui-card ui-card-compact stagger-enter" style={{ '--index': 3, '--stagger-step': '60ms' }}><div className="total-icon"><TargetIcon /></div><div className="total-value">{masteryPercent}%</div><div className="total-label">{t("stats_mastery")}</div></div>
+      </div>
+      {!hasActivity && (
+        <div className="stats-empty-state stagger-enter" style={{ '--index': 4 }}>
           <div className="stats-empty-icon"><StatsIcon active={false} /></div>
           <div className="stats-empty-title">{t("noActivity")}</div>
           <div className="stats-empty-desc">{t("noActivityDesc")}</div>
         </div>
-      ) : (
-        <>
-          <div className="stats-week-strip">
+      )}
+          <div className="stats-week-strip ui-card stagger-enter" style={{ '--index': 4 }}>
+            <h3 className="stats-section-title">{t("stats_weekly")}</h3>
             <div className="week-summary">
-              <span className="week-summary-item"><BooksIcon size={16} /> {weekReviewedTotal} {t("reviewedToday")}</span>
+              <span className="week-summary-item"><BooksIcon size={16} /> {weekReviewedTotal} {t("reviewedWords")}</span>
               <span className="week-summary-item"><PlusIcon size={16} /> {weekAddedTotal} {t("wordsAdded")}</span>
               <span className="week-summary-item"><ClockIcon size={16} /> {usage.fmt(weekTimeTotal)}</span>
             </div>
             <div className="week-days-compact">
               {weekDays.map((d, i) => (
-                <div key={i} className="day-num-item" title={`${d.reviewed} reviewed, ${d.added} added`}>
+                <div key={i} className="day-num-item" title={`${d.date} · ${t("stats_activity_count").replace("{reviewed}", d.reviewed).replace("{added}", d.added)}`}>
                   <div className="day-num-label">{d.label}</div>
                   <div className={`day-num-value intensity-${getIntensity(d.reviewed + d.added)}`}>{d.reviewed > 0 ? d.reviewed : d.added > 0 ? `+${d.added}` : '—'}</div>
                 </div>
@@ -181,28 +201,24 @@ function ActivityView({ usage, totalWords, stats }) {
               {t("annualDetails")}
             </button>
           </div>
-          <div className="stats-totals-grid">
-            <div className="total-card"><div className="total-icon"><BooksIcon /></div><div className="total-value">{stats.wordsReviewed || 0}</div><div className="total-label">{t("reviewedWords")}</div></div>
-            <div className="total-card"><div className="total-icon"><TargetIcon /></div><div className="total-value">{accuracy}%</div><div className="total-label">{t("accuracy")}</div></div>
-            <div className="total-card"><div className="total-icon"><ClockIcon /></div><div className="total-value">{usage.fmt(usage.total)}</div><div className="total-label">{t("totalTime")}</div></div>
-            <div className="total-card"><div className="total-icon"><FlameSmallIcon /></div><div className="total-value">{streak}</div><div className="total-label">{t("streak")}</div></div>
-          </div>
-          <div className="stats-week-strip" style={{ marginTop: 16 }}>
+          <section className="stats-monthly ui-card stagger-enter" style={{ '--index': 5 }}><h3 className="stats-section-title">{t("stats_monthly")}</h3>{renderMonthCards()}</section>
+          <div className="stats-week-strip ui-card stagger-enter" style={{ marginTop: 16, '--index': 5 }}>
             <div className="stat-row"><span className="stat-row-label"><BookIcon size={16} color="var(--color-primary)" /> {t("totalWords")}</span><span className="stat-row-value">{totalWords}</span></div>
             <div className="stat-row"><span className="stat-row-label"><GemIcon size={16} color="var(--color-primary)" /> {t("wordsAdded")}</span><span className="stat-row-value">{stats.wordsAdded || 0}</span></div>
             <div className="stat-row"><span className="stat-row-label"><GamepadIcon size={16} color="var(--color-primary)" /> {t("gamesPlayed")}</span><span className="stat-row-value">{stats.gamesPlayed || 0}</span></div>
             <div className="stat-row"><span className="stat-row-label"><CheckIcon size={16} color="#2D6A4F" /> {t("correctAnswers")}</span><span className="stat-row-value">{stats.correctAnswers || 0}</span></div>
             <div className="stat-row"><span className="stat-row-label"><CrossIcon size={16} color="#7B2D2D" /> {t("wrong")}</span><span className="stat-row-value">{stats.wrongAnswers || 0}</span></div>
+            <div className="stat-row"><span className="stat-row-label"><TargetIcon size={16} /> {t("accuracy")}</span><span className="stat-row-value">{accuracy}%</span></div>
+            <div className="stat-row"><span className="stat-row-label"><ClockIcon size={16} /> {t("totalTime")}</span><span className="stat-row-value">{usage.fmt(usage.total)}</span></div>
           </div>
-        </>
-      )}
+          <section className="stats-year-progress ui-card stagger-enter" style={{ '--index': 6 }}><div className="stats-year-header"><h3>{t("stats_year_progress")} · {year}</h3><strong>{yearProgress}%</strong></div><div className="stats-year-track" role="progressbar" aria-label={t("stats_year_progress")} aria-valuemin="0" aria-valuemax="100" aria-valuenow={yearProgress}><div style={{ width: `${yearProgress}%` }} /></div><p>{yearReviewed} {t("reviewedWords")} · {yearAdded} {t("wordsAdded")}</p></section>
       {sheet.open && (
         <div className="bottom-sheet-overlay" onClick={() => { setSheet({ ...sheet, open: false }); setSelectedDayData(null); }}>
           <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
             <div className="sheet-handle" />
             <div className="sheet-header">
               <div className="sheet-title">{t("annualDetails")} — {year}</div>
-              <button className="sheet-close" onClick={() => { setSheet({ ...sheet, open: false }); setSelectedDayData(null); }} aria-label="Close"><CloseIcon /></button>
+              <button className="sheet-close ui-btn-icon" onClick={() => { setSheet({ ...sheet, open: false }); setSelectedDayData(null); }} aria-label="Close"><CloseIcon /></button>
             </div>
             {sheet.view === 'annual' && renderAnnualView()}
             {sheet.view === 'month' && renderMonthView()}
@@ -215,6 +231,7 @@ function ActivityView({ usage, totalWords, stats }) {
 
 function BottomNav({ activeTab, onTabChange, t }) {
   const tabs = [
+    { id: 'home', icon: HomeIcon, label: t('home') },
     { id: 'traduire', icon: TranslateIcon, label: t('traduire') },
     { id: 'games', icon: GamesIcon, label: t('games') },
     { id: 'stats', icon: StatsIcon, label: t('stats') },
@@ -308,20 +325,20 @@ function HistoryList({ entries, setEntries, onSelect, onSpeak }) {
       </button>
       {open && <div className="traduire-history-content">
         <div className="traduire-history-toolbar">
-          <input className="traduire-history-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder={t("traduire_history_search")} aria-label={t("traduire_history_search")} />
-          <button type="button" className="traduire-history-clear" onClick={clearAll} disabled={!entries.length}>{t("traduire_history_clear_all")}</button>
+          <input className="traduire-history-search ui-input" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder={t("traduire_history_search")} aria-label={t("traduire_history_search")} />
+          <button type="button" className="traduire-history-clear ui-btn-danger" onClick={clearAll} disabled={!entries.length}>{t("traduire_history_clear_all")}</button>
         </div>
         {filtered.length ? <ul className="traduire-history-list">
-          {filtered.map(entry => <li className="traduire-history-entry" key={entry.id}>
+          {filtered.map(entry => <li className="traduire-history-entry ui-card-compact" key={entry.id}>
             <button type="button" className="traduire-history-select" onClick={() => onSelect(entry)}>
               <span className="traduire-history-source" dir="auto">{entry.source.slice(0, 60)}{entry.source.length > 60 ? "…" : ""}</span>
               <span className="traduire-history-result" dir="auto">{entry.result.slice(0, 60)}{entry.result.length > 60 ? "…" : ""}</span>
               <span className="traduire-history-meta">{entry.sourceLang.toUpperCase()} → {entry.targetLang.toUpperCase()} · {relativeTime(entry.timestamp)}</span>
             </button>
             <div className="traduire-history-actions">
-              <button type="button" onClick={() => copyEntry(entry.result)} aria-label={t("traduire_copy")} title={t("traduire_copy")}>{t("traduire_copy")}</button>
-              <button type="button" onClick={() => onSpeak(entry.result, entry.targetLang)} aria-label={t("traduire_speak")} title={t("traduire_speak")}><SpeakerIcon /></button>
-              <button type="button" onClick={() => deleteEntry(entry.id)} aria-label={t("delete")} title={t("delete")}>{t("delete")}</button>
+              <button type="button" className="ui-btn-secondary" onClick={() => copyEntry(entry.result)} aria-label={t("traduire_copy")} title={t("traduire_copy")}>{t("traduire_copy")}</button>
+              <button type="button" className="ui-btn-icon" onClick={() => onSpeak(entry.result, entry.targetLang)} aria-label={t("traduire_speak")} title={t("traduire_speak")}><SpeakerIcon /></button>
+              <button type="button" className="ui-btn-danger" onClick={() => deleteEntry(entry.id)} aria-label={t("delete")} title={t("delete")}>{t("delete")}</button>
             </div>
           </li>)}
         </ul> : <p className="traduire-history-empty">{t("traduire_history_empty")}</p>}
@@ -332,7 +349,7 @@ function HistoryList({ entries, setEntries, onSelect, onSpeak }) {
 
 function TranslateMicButton({ supported, listening, onClick, t }) {
   if (!supported) return null;
-  return <button type="button" className={`traduire-mic ${listening ? "is-listening" : ""}`} onClick={onClick} aria-label={t(listening ? "traduire_mic_stop" : "traduire_mic_start")} aria-pressed={listening} title={t(listening ? "traduire_mic_stop" : "traduire_mic_start")}><VoiceIcon size={20} /></button>;
+  return <button type="button" className={`traduire-mic ui-btn-icon ${listening ? "is-listening" : ""}`} onClick={onClick} aria-label={t(listening ? "traduire_mic_stop" : "traduire_mic_start")} aria-pressed={listening} title={t(listening ? "traduire_mic_stop" : "traduire_mic_start")}><VoiceIcon size={20} /></button>;
 }
 
 function TranslatePage({ draft, setDraft }) {
@@ -566,52 +583,54 @@ function TranslatePage({ draft, setDraft }) {
 
   return (
     <section className="traduire-page" ref={translatorRef}>
-      <h2 className="traduire-title">{t("traduire_title")}</h2>
+      <header className="traduire-page-header">
+        <h2 className="traduire-title main-page-title">{t("traduire")}</h2>
+        <p className="traduire-subtitle">{t("traduire_subtitle")}</p>
+      </header>
       <div className="traduire-languages">
         <div className="traduire-language">
           <label className="traduire-label" htmlFor="traduire-source-lang">{t("traduire_from")}</label>
-          <select className="traduire-select" id="traduire-source-lang" value={sourceLang} onChange={e => { discardMicrophone(); cancelRequest(); setDraft(prev => ({ ...prev, sourceLang: e.target.value })); setEstimatedLang(""); }}>
+          <select className="traduire-select ui-input" id="traduire-source-lang" value={sourceLang} onChange={e => { discardMicrophone(); cancelRequest(); setDraft(prev => ({ ...prev, sourceLang: e.target.value })); setEstimatedLang(""); }}>
             <option value="auto">{t("traduire_auto_detect")}</option>
             {languageCodes.map(code => <option key={code} value={code}>{getLang(code).name}</option>)}
           </select>
         </div>
-        <button type="button" className="traduire-swap" onClick={swapLanguages} disabled={sourceLang === "auto" && !sourceAudioLang} aria-label={t("traduire_swap")} title={t("traduire_swap")}>⇄</button>
+        <button type="button" className="traduire-swap ui-btn-icon" onClick={swapLanguages} disabled={sourceLang === "auto" && !sourceAudioLang} aria-label={t("traduire_swap")} title={t("traduire_swap")}>⇄</button>
         <div className="traduire-language">
           <label className="traduire-label" htmlFor="traduire-target-lang">{t("traduire_to")}</label>
-          <select className="traduire-select" id="traduire-target-lang" value={targetLang} onChange={e => { discardMicrophone(); cancelRequest(); setDraft(prev => ({ ...prev, targetLang: e.target.value })); }}>
+          <select className="traduire-select ui-input" id="traduire-target-lang" value={targetLang} onChange={e => { discardMicrophone(); cancelRequest(); setDraft(prev => ({ ...prev, targetLang: e.target.value })); }}>
             {languageCodes.map(code => <option key={code} value={code}>{getLang(code).name}</option>)}
           </select>
         </div>
       </div>
       <div className="traduire-panels">
-        <div className="traduire-panel">
+        <div className="traduire-panel ui-card">
           <div className="traduire-panel-heading">
             <label className="traduire-label" htmlFor="traduire-source-text">{t("traduire_from")}</label>
             <div className="traduire-audio-actions">
               <TranslateMicButton supported={micSupported} listening={listeningSide === "source"} onClick={() => toggleMicrophone("source")} t={t} />
-              <button type="button" className={`traduire-speak ${speaking && audioSide === "source" ? "traduire-speak-playing" : ""}`} onClick={() => playAudio("source")} disabled={!sourceText.trim() || !sourceAudioLang} aria-label={t("traduire_speak")}><SpeakerIcon active={speaking && audioSide === "source"} /></button>
+              <button type="button" className="traduire-clear ui-btn-icon" onClick={clearText} disabled={!sourceText && !result && status === "idle"} aria-label={t("traduire_clear")} title={t("traduire_clear")}><CloseIcon size={18} /></button>
             </div>
           </div>
-          <textarea className="traduire-textarea" id="traduire-source-text" ref={sourceInputRef} value={sourceText} onChange={e => { discardMicrophone(); cancelRequest(); setDraft(prev => ({ ...prev, sourceText: e.target.value.slice(0, 1000), result: "" })); setEstimatedLang(""); }} maxLength={1000} placeholder={t("traduire_placeholder")} lang={sourceLang === "auto" ? undefined : sourceLang} dir={sourceLang === "ar" ? "rtl" : "ltr"} />
+          <textarea className="traduire-textarea ui-input" id="traduire-source-text" ref={sourceInputRef} value={sourceText} onChange={e => { discardMicrophone(); cancelRequest(); setDraft(prev => ({ ...prev, sourceText: e.target.value.slice(0, 1000), result: "" })); setEstimatedLang(""); }} maxLength={1000} placeholder={t("traduire_placeholder")} lang={sourceLang === "auto" ? undefined : sourceLang} dir={sourceLang === "ar" ? "rtl" : "ltr"} />
           <div className="traduire-source-meta">
             {sourceLang === "auto" && estimatedLang && status === "success" && <span className="traduire-detected">{t("traduire_detected")}: {estimatedLang}</span>}
             {sourceText.length > 0 && <span className={`traduire-counter ${sourceText.length > 900 ? "traduire-counter-warning" : ""}`}>{countLabel}</span>}
           </div>
+          <button type="button" className={`traduire-speak traduire-speak-below ${speaking && audioSide === "source" ? "traduire-speak-playing" : ""}`} onClick={() => playAudio("source")} disabled={!sourceText.trim() || !sourceAudioLang} aria-label={t("traduire_speak")}><SpeakerIcon active={speaking && audioSide === "source"} /> {t("traduire_speak")}</button>
         </div>
-        <div className="traduire-panel">
+        <div className={`traduire-panel ui-card ${status === "loading" ? "traduire-panel-loading" : ""}`}>
           <div className="traduire-panel-heading">
             <label className="traduire-label" htmlFor="traduire-result-text">{t("traduire_to")}</label>
             <div className="traduire-audio-actions">
               <TranslateMicButton supported={micSupported} listening={listeningSide === "target"} onClick={() => toggleMicrophone("target")} t={t} />
-              <button type="button" className={`traduire-speak ${speaking && audioSide === "result" ? "traduire-speak-playing" : ""}`} onClick={() => playAudio("result")} disabled={!result.trim() || status === "error"} aria-label={t("traduire_speak")}><SpeakerIcon active={speaking && audioSide === "result"} /></button>
+              <button type="button" className="traduire-copy ui-btn-icon" onClick={copyResult} disabled={!result || status === "error"} aria-label={t("traduire_copy")} title={t("traduire_copy")}><UiIcon name="copy" size={18} /></button>
+              <button type="button" className="traduire-clear ui-btn-icon" onClick={clearText} disabled={!sourceText && !result && status === "idle"} aria-label={t("traduire_clear")} title={t("traduire_clear")}><CloseIcon size={18} /></button>
             </div>
           </div>
-          <textarea className="traduire-textarea traduire-result" id="traduire-result-text" value={result} onChange={handleTargetChange} placeholder={resultPlaceholder} lang={targetLang} dir={targetLang === "ar" ? "rtl" : "ltr"} aria-live="polite" />
+          <textarea className="traduire-textarea traduire-result ui-input" id="traduire-result-text" value={result} onChange={handleTargetChange} placeholder={resultPlaceholder} lang={targetLang} dir={targetLang === "ar" ? "rtl" : "ltr"} aria-live="polite" />
+          <button type="button" className={`traduire-speak traduire-speak-below ${speaking && audioSide === "result" ? "traduire-speak-playing" : ""}`} onClick={() => playAudio("result")} disabled={!result.trim() || status === "error"} aria-label={t("traduire_speak")}><SpeakerIcon active={speaking && audioSide === "result"} /> {t("traduire_speak")}</button>
         </div>
-      </div>
-      <div className="traduire-actions">
-        <button type="button" className="traduire-copy" onClick={copyResult} disabled={!result || status === "error"}>{t("traduire_copy")}</button>
-        <button type="button" className="traduire-clear" onClick={clearText} disabled={!sourceText && !result && status === "idle"}>{t("traduire_clear")}</button>
       </div>
       <HistoryList entries={Array.isArray(history) ? history : []} setEntries={setHistory} onSelect={selectHistory} onSpeak={(text, lang) => { setAudioSide(null); speakText(text, lang); }} />
     </section>
@@ -729,18 +748,18 @@ function SetEditor({ set, onBack, onUpdate, onDeleteWord, onWordAdded }) {
     setSelectedFileId(fileId);
     wordInputRef.current?.focus();
   };
-  const renderWordGroups = words => groupFolderWords(words, t, locale).map(group => (
-    <div key={group.key} className="folder-date-group">
+  const renderWordGroups = words => groupFolderWords(words, t, locale).map((group, i) => (
+    <div key={group.key} className="folder-date-group stagger-enter" style={{ '--index': i }}>
       <div className="folder-date-header">{group.label}</div>
       {group.words.map(w => (
-        <div key={w.id} className="word-row">
+        <div key={w.id} className="word-row ui-card-compact">
           <div className="word-row-main">
             <div className="word-row-text">{w.word}</div>
             <div className="word-row-translation">→ {w.translation}</div>
           </div>
           <div className="flex-row">
-            <button type="button" className="btn btn-secondary" onClick={() => { setEditingWordId(w.id); setNewWord({ word: w.word, translation: w.translation }); setSelectedFileId(w.fileId || ""); wordInputRef.current?.focus(); }} aria-label={t("edit")}>{t("edit")}</button>
-            <button type="button" className="icon-btn danger" onClick={async () => { if (confirm(t("confirmDeleteWord")) && await onDeleteWord(set.id, w.id)) toast(t("deleted"), "info"); }} aria-label={t("delete")}><TrashIcon /></button>
+            <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => { setEditingWordId(w.id); setNewWord({ word: w.word, translation: w.translation }); setSelectedFileId(w.fileId || ""); wordInputRef.current?.focus(); }} aria-label={t("edit")}>{t("edit")}</button>
+            <button type="button" className="icon-btn danger ui-btn-danger" onClick={async () => { if (confirm(t("confirmDeleteWord")) && await onDeleteWord(set.id, w.id)) toast(t("deleted"), "info"); }} aria-label={t("delete")}><TrashIcon /></button>
           </div>
         </div>
       ))}
@@ -751,10 +770,10 @@ function SetEditor({ set, onBack, onUpdate, onDeleteWord, onWordAdded }) {
   return (
     <div>
       <div className="page-header">
-        <button type="button" className="btn btn-secondary" onClick={onBack}>← {t("back")}</button>
+        <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={onBack}>← {t("back")}</button>
         <h2><EditIcon size={20} /> {t("editor")}</h2>
       </div>
-      <div className="editor-box glass">
+      <div className="editor-box glass stagger-enter" style={{ '--index': 0 }}>
         <div className="field"><label>{t("setName")}</label><input value={name} onChange={e => setName(e.target.value)} /></div>
         <div className="grid-2">
           <div className="field"><label>{t("firstLang")}</label><select value={lang1} onChange={e => setLang1(e.target.value)}>{LANGS.map(l => (<option key={l.code} value={l.code}>{l.flag} {l.name}</option>))}</select></div>
@@ -762,7 +781,7 @@ function SetEditor({ set, onBack, onUpdate, onDeleteWord, onWordAdded }) {
         </div>
         <button type="button" className="btn btn-primary" onClick={saveSetInfo}><CheckIcon size={16} color="var(--color-text)" /> {t("save")}</button>
       </div>
-      <div className="editor-box glass">
+      <div className="editor-box glass stagger-enter" style={{ '--index': 1 }}>
         <h3 style={{ marginBottom: 14, fontSize: 17, fontWeight: 800 }}><PlusIcon size={16} /> {t("addWord")}</h3>
         <div className="field">
           <label>{t("word")} ({l1.name})</label>
@@ -785,32 +804,32 @@ function SetEditor({ set, onBack, onUpdate, onDeleteWord, onWordAdded }) {
           </select>
         </div>
         <button type="button" className="btn btn-success btn-block" onClick={addWord} disabled={!newWord.word.trim() || !newWord.translation.trim()}><PlusIcon size={16} /> {editingWordId ? t("save") : t("add")}</button>
-        {editingWordId && <button type="button" className="btn btn-secondary btn-block" onClick={() => { setEditingWordId(null); setNewWord({ word: "", translation: "" }); setSelectedFileId(""); }}>{t("cancel")}</button>}
+        {editingWordId && <button type="button" className="btn btn-secondary ui-btn-secondary btn-block" onClick={() => { setEditingWordId(null); setNewWord({ word: "", translation: "" }); setSelectedFileId(""); }}>{t("cancel")}</button>}
       </div>
-      <div className="editor-box glass">
+      <div className="editor-box glass stagger-enter" style={{ '--index': 2 }}>
         <div className="folder-file-toolbar">
           <h3><BookIcon size={16} color="var(--color-primary)" /> {t("words")} ({set.words.length})</h3>
-          <button type="button" className="btn btn-secondary" onClick={() => setNewFileOpen(true)}><PlusIcon size={16} /> {t("folder_new_file")}</button>
+          <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => setNewFileOpen(true)}><PlusIcon size={16} /> {t("folder_new_file")}</button>
         </div>
         {newFileOpen && <div className="folder-file-create">
-          <input value={newFileName} onChange={e => setNewFileName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") createFile(); }} placeholder={t("folder_file_name_placeholder")} autoFocus />
+          <input className="ui-input" value={newFileName} onChange={e => setNewFileName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") createFile(); }} placeholder={t("folder_file_name_placeholder")} autoFocus />
           <button type="button" className="btn btn-primary" onClick={createFile} disabled={!newFileName.trim()}>{t("save")}</button>
-          <button type="button" className="btn btn-secondary" onClick={() => { setNewFileOpen(false); setNewFileName(""); }}>{t("cancel")}</button>
+          <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => { setNewFileOpen(false); setNewFileName(""); }}>{t("cancel")}</button>
         </div>}
         {set.words.length === 0 && (<div className="empty-state"><div className="empty-icon"><BookIcon size={48} color="var(--color-primary)" /></div><div className="empty-text">{t("noWords")}</div></div>)}
-        {files.map(file => {
+        {files.map((file, i) => {
           const fileWords = set.words.filter(word => word.fileId === file.id);
-          return <details key={file.id} className="folder-file-section">
+          return <details key={file.id} className="folder-file-section stagger-enter" style={{ '--index': i }}>
             <summary className="folder-file-summary">{file.name} ({fileWords.length})</summary>
             <div className="folder-file-body">
               <div className="folder-file-actions">
                 {editingFileId === file.id ? <>
                   <input value={editingFileName} onChange={e => setEditingFileName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveFileName(file.id); }} aria-label={t("folder_file_name_placeholder")} />
                   <button type="button" className="btn btn-primary" onClick={() => saveFileName(file.id)} disabled={!editingFileName.trim()}>{t("save")}</button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setEditingFileId(null)}>{t("cancel")}</button>
-                </> : <button type="button" className="btn btn-secondary" onClick={() => { setEditingFileId(file.id); setEditingFileName(file.name); }}>{t("edit")}</button>}
-                <button type="button" className="btn btn-secondary" onClick={() => addWordToFile(file.id)}>{t("addWord")}</button>
-                <button type="button" className="btn btn-danger" onClick={() => deleteFile(file.id)}>{t("folder_delete_file")}</button>
+                  <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => setEditingFileId(null)}>{t("cancel")}</button>
+                </> : <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => { setEditingFileId(file.id); setEditingFileName(file.name); }}>{t("edit")}</button>}
+                <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => addWordToFile(file.id)}>{t("addWord")}</button>
+                <button type="button" className="btn btn-danger ui-btn-danger" onClick={() => deleteFile(file.id)}>{t("folder_delete_file")}</button>
               </div>
               {fileWords.length ? renderWordGroups(fileWords) : <div className="muted">{t("noWords")}</div>}
             </div>
