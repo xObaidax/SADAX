@@ -831,11 +831,10 @@ position: relative; z-index: 15;
 .match-column-section { flex: 1; display: flex; flex-direction: column; }
 .match-column-header { text-align: center; font-weight: 800; font-size: clamp(12px, 3vw, 14px); color: var(--text); padding: 8px; background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 10%, transparent), color-mix(in srgb, var(--color-secondary) 10%, transparent)); border-radius: 12px; margin-bottom: 10px; border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent); }
 .match-column {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-content: flex-start;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 8px;
   padding: 16px;
 }
 .match-btn {
@@ -863,7 +862,8 @@ text-align: center; line-height: 1.3;
   align-items: center;
   justify-content: center;
   width: auto;
-  padding: 8px 16px;
+  min-width: 0;
+  padding: 8px 4px;
   background: transparent;
   border: none;
   color: var(--color-text);
@@ -1353,6 +1353,7 @@ select,
   .mcq-game .mcq-options { grid-template-columns: 1fr; }
   .match-game-layout { gap: 10px; }
   .match-game-layout .match-column-section { padding: 8px; }
+  .match-column { padding: 8px; }
   .match-btn { min-height: 84px !important; }
 }
 @media (max-width: 430px) {
@@ -1634,6 +1635,12 @@ select:focus,
   fill: currentColor;
   stroke: currentColor;
 }
+.save-word-btn.btn-saved-pulse { animation: saved-button-pulse 320ms ease !important; pointer-events: none; }
+@keyframes saved-button-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); background: var(--color-primary); color: var(--color-text-on-primary); }
+}
+@media (prefers-reduced-motion: reduce) { .save-word-btn.btn-saved-pulse { animation: none !important; } }
 
 /* Navigation menus and activity popover */
 .dropdown-menu .dropdown-item:hover { background: var(--color-primary-soft); }
@@ -1824,6 +1831,8 @@ select:focus,
 
 /* Game response and progress motion */
 .game-shell .progress-fill { transition: width var(--dur-slow) var(--ease-out); }
+.game-shell.shake { animation: shake 400ms ease !important; }
+.mcq-next-button { margin-top: var(--space-4); }
 .game-shell .progress-bar.progress-complete { box-shadow: 0 0 12px var(--color-primary); }
 .game-shell .dual-card-container, .game-shell .mcq-word-box,
 .game-shell .spelling-box, .game-shell .match-game-layout,
@@ -1863,6 +1872,7 @@ select:focus,
 .stagger-enter { animation: slide-up var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--index, 0) * 80ms); }
 .month-card.stagger-enter:hover { animation: none; }
 @media (prefers-reduced-motion: reduce) {
+  .game-shell.shake { animation: none !important; }
   .stagger-enter, .game-results-enter, .game-shell .dual-card-container,
   .game-shell .mcq-word-box, .game-shell .spelling-box,
   .game-shell .match-game-layout, .game-shell .dictee-pro-player,
@@ -1878,9 +1888,6 @@ select:focus,
 .home-welcome-copy { min-width: 0; }
 .home-welcome-title { margin: 0; color: var(--color-text); font-size: var(--fs-xl); font-weight: var(--fw-black); }
 .home-welcome-subtitle { margin: var(--space-2) 0 0; color: var(--color-text-muted); font-size: var(--fs-base); }
-.home-avatar { display: grid; place-items: center; flex: 0 0 48px; width: 48px; height: 48px; padding: 0; overflow: hidden; border: 1px solid var(--color-border-strong); border-radius: 50%; background: var(--color-primary-soft); color: var(--color-primary); font-weight: var(--fw-black); cursor: pointer; }
-.home-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.home-avatar:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .home-stats-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
 .home-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2); text-align: center; }
 .home-stat strong { color: var(--color-primary); font-size: var(--fs-xl); font-weight: var(--fw-black); }
@@ -1890,13 +1897,27 @@ select:focus,
 .home-progress-track { height: 10px; overflow: hidden; border-radius: var(--radius-md); background: var(--color-primary-soft); }
 .home-progress-fill { height: 100%; border-radius: inherit; background: var(--color-primary); transition: width var(--dur-slow) var(--ease-out); }
 .home-progress p { margin: var(--space-3) 0 0; color: var(--color-text-muted); font-size: var(--fs-sm); }
-.home-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-5); }
-.home-actions .ui-btn { flex: 1 1 180px; }
 .home-daily-word { margin-bottom: var(--space-5); background: linear-gradient(135deg, var(--color-primary-soft), var(--color-card)); }
-.home-daily-word-content { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
-.home-daily-word-content div { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
-.home-daily-word-content strong { color: var(--color-text); font-size: var(--fs-xl); overflow-wrap: anywhere; }
-.home-daily-word-content span, .home-daily-word > p { color: var(--color-text-muted); }
+.home-daily-hint { margin: 0 0 var(--space-4); color: var(--color-text-muted); font-size: var(--fs-sm); }
+.home-daily-controls { margin-bottom: var(--space-5); }
+.home-daily-count-control { display: grid; gap: var(--space-2); flex: 1 1 180px; }
+.home-daily-count-control label { display: flex; justify-content: space-between; gap: var(--space-3); color: var(--color-text-muted); font-size: var(--fs-sm); }
+.home-daily-count-control output { color: var(--color-text); font-weight: var(--fw-bold); }
+.home-daily-count-control input { width: 100%; height: 28px; accent-color: var(--color-primary); }
+.home-daily-empty { margin: 0; color: var(--color-text-muted); }
+.home-daily-list { display: grid; gap: var(--space-3); }
+.home-daily-entry.ui-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: var(--space-4); padding: var(--space-4) var(--space-5); border-radius: var(--radius-md); background: linear-gradient(135deg, var(--glass-bg), var(--glass-bg-strong)); border: 1px solid var(--color-border); box-shadow: var(--glass-shadow); backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); cursor: pointer; transition: transform var(--dur-base) ease, border-color var(--dur-base) ease, box-shadow var(--dur-base) ease; }
+.home-daily-entry.ui-card:hover { transform: translateY(-2px); border-color: var(--color-primary); box-shadow: var(--glass-shadow-deep); }
+.home-daily-entry.ui-card:focus-within { border-color: var(--color-primary); }
+.home-daily-entry-main { display: contents; }
+.home-daily-reveal { grid-column: 1; grid-row: 1; min-width: 0; width: 100%; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--color-text); font-size: var(--fs-xl); font-weight: var(--fw-bold); text-align: start; overflow-wrap: anywhere; cursor: pointer; }
+.home-daily-reveal:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+.home-daily-entry-actions { grid-column: 2; grid-row: 1 / span 2; display: flex; align-items: center; gap: var(--space-2); }
+.home-daily-save[aria-pressed="true"] { background: var(--color-primary-soft); border-color: var(--color-primary); }
+.home-daily-translation { grid-column: 1; grid-row: 2; display: grid; grid-template-rows: 0fr; margin-top: 0; opacity: 0; transform: translateY(-4px); transition: grid-template-rows var(--dur-base) ease, margin-top var(--dur-base) ease, opacity var(--dur-base) ease, transform var(--dur-base) ease; }
+.home-daily-translation > span { min-height: 0; overflow: hidden; color: var(--color-text-muted); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.home-daily-entry.revealed .home-daily-translation { grid-template-rows: 1fr; margin-top: var(--space-3); opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .home-daily-entry.ui-card, .home-daily-translation { transition: none; } }
 @media (max-width: 480px) { .home-stats-strip { gap: var(--space-2); } .home-stat { padding: var(--space-3); } }
 
 /* Opt-in variants for a later component pass. */
@@ -2047,8 +2068,10 @@ select:focus,
 .flashcard-flip-stage { width: 100%; height: 220px; perspective: 1000px; }
 .flashcard-flip-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 500ms var(--ease-out); }
 .flashcard-game .dual-card.is-flipped .flashcard-flip-inner { transform: rotateY(180deg); }
+.flashcard-game .dual-card.is-flipped[data-flip-dir="rtl"] .flashcard-flip-inner { transform: rotateY(-180deg); }
 .flashcard-face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .flashcard-back { transform: rotateY(180deg); }
+.flashcard-game .dual-card[data-flip-dir="rtl"] .flashcard-back { transform: rotateY(-180deg); }
 .flashcard-face .card-word, .flashcard-face .card-translation { max-height: 150px; overflow: auto; }
 .flashcard-face .card-hint { margin-top: var(--space-4); }
 .flashcard-game .answer-buttons .btn-danger.ui-btn-secondary { background: transparent; color: var(--color-text); border: 1px solid var(--color-border-strong); box-shadow: none; }

@@ -23,6 +23,33 @@ function AnimatedScore({ value, suffix = "" }) {
   return <>{display}{suffix}</>;
 }
 
+function pulseSaveButton(event, onSave) {
+  const button = event.currentTarget;
+  if (button.dataset.savePending === "true") return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) { onSave(); return; }
+  button.dataset.savePending = "true";
+  button.classList.remove("btn-saved-pulse");
+  void button.offsetWidth;
+  button.classList.add("btn-saved-pulse");
+  setTimeout(() => {
+    button.classList.remove("btn-saved-pulse");
+    delete button.dataset.savePending;
+    onSave();
+  }, 320);
+}
+
+function useScreenShake() {
+  const [shaking, setShaking] = useState(false);
+  const timerRef = useRef(null);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+  const triggerShake = useCallback(() => {
+    setShaking(true);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setShaking(false), 400);
+  }, []);
+  return [shaking, triggerShake];
+}
+
 function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings, onReview, onGameComplete }) {
   const { t } = useI18n();
   const { speakText, speaking } = useSpeech(voiceSettings.rate, voiceSettings.pitch);
@@ -44,8 +71,8 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
     }
   }, [cards.length, idx]);
   useEffect(() => { setShowTranslation(false); setIsAnswering(false); setSwipeX(0); swipeStartRef.current = null; }, [idx]);
-  const cardLang1 = card?.lang1 || set.lang1;
-  const cardLang2 = card?.lang2 || set.lang2;
+  const cardLang1 = card?.lang1 || card?.source_language || set.lang1;
+  const cardLang2 = card?.lang2 || card?.target_language || set.lang2;
   const speakFront = useCallback(() => { if (card) speakText(card.word, cardLang1); }, [card, cardLang1, speakText]);
   const speakBack = useCallback(() => { if (card) speakText(card.translation, cardLang2); }, [card, cardLang2, speakText]);
   const handleCardClick = () => { if (isAnswering) return; setShowTranslation(prev => !prev); };
@@ -125,6 +152,8 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
       <div key={card.id} className={`dual-card-container single-card-mode ${answerFeedback}`}>
         <div
           className={`dual-card dual-card-french ${showTranslation ? 'is-flipped' : ''}`}
+          dir="ltr"
+          data-flip-dir={l2.dir}
           role="button"
           tabIndex={0}
           aria-label={`${t("tapToFlip")}. ${t("correct")} إلى اليمين، ${t("wrong")} إلى اليسار`}
@@ -139,7 +168,7 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
           <span className={`swipe-label right ${swipeX > 30 ? "visible" : ""}`}>✓ {t("correct")}</span>
           <span className={`swipe-label left ${swipeX < -30 ? "visible" : ""}`}>× {t("wrong")}</span>
           <div className="card-top-actions">
-            <button type="button" className="card-round-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onPointerDown={e => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onToggleSaved(card.id); }}>
+            <button type="button" className="card-round-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onPointerDown={e => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); pulseSaveButton(e, () => onToggleSaved(card.id)); }}>
               <BookmarkIcon filled={isSaved} />
             </button>
             <span className="card-chip">{idx + 1}/{cards.length}</span>
@@ -151,12 +180,12 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
             <div className="flashcard-flip-inner">
               <div className="flashcard-face flashcard-front" aria-hidden={showTranslation}>
                 <div className="card-lang-label"><UiIcon name="globe" size={15} /> {l1.name}</div>
-                <div className="card-word" dir={l1.dir} lang={card.lang1 || set.lang1}>{card.word}</div>
+                <div className="card-word" dir={l1.dir} lang={cardLang1}>{card.word}</div>
                 <div className="card-hint"><SparkleIcon size={16} /> {t("tapToFlip")}</div>
               </div>
               <div className="flashcard-face flashcard-back" aria-hidden={!showTranslation}>
                 <div className="card-lang-label"><UiIcon name="globe" size={15} /> {l2.name}</div>
-                <div className="card-translation" dir={l2.dir} lang={card.lang2 || set.lang2}>{card.translation}</div>
+                <div className="card-translation" dir={l2.dir} lang={cardLang2}>{card.translation}</div>
                 <div className="card-hint"><SparkleIcon size={16} /> {t("tapToFlip")}</div>
               </div>
             </div>
@@ -183,6 +212,8 @@ function MCQGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings
   const cards = useMemo(() => isSanctuary ? initialCards : initialCards.filter(w => !savedIds.includes(w.id)), [initialCards, savedIds, isSanctuary]);
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState(null);
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [shaking, triggerShake] = useScreenShake();
   const [options, setOptions] = useState([]);
   const [results, setResults] = useState([]);
   const card = cards[idx];
@@ -197,8 +228,13 @@ function MCQGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings
     const others = set.words.filter(w => w.id !== card.id && !savedIds.includes(w.id)).map(w => w.translation).sort(() => Math.random() - 0.5).slice(0, 3);
     setOptions(shuffle([card.translation, ...others]));
     setSelected(null);
+    setShowNextButton(false);
   }, [idx, card?.id, savedIds]);
   if (!card) return (<div className="glass results-box"><p>{t("noWords")}</p><button type="button" className="btn btn-primary" onClick={onExit}>{t("home")}</button></div>);
+  const advanceQuestion = (res) => {
+    if (idx + 1 >= cards.length) { if (onGameComplete) onGameComplete(); onFinish(res, initialCards); }
+    else { setIdx(idx + 1); }
+  };
   const choose = (opt) => {
     if (selected !== null) return;
     const ok = opt === card.translation;
@@ -206,15 +242,13 @@ function MCQGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings
     if (onReview) onReview(ok);
     const res = [...results, { id: card.id, correct: ok, word: card.word, translation: card.translation }];
     setResults(res);
-    setTimeout(() => {
-      if (idx + 1 >= cards.length) { if (onGameComplete) onGameComplete(); onFinish(res, initialCards); }
-      else { setIdx(idx + 1); }
-    }, 1100);
+    if (ok) setTimeout(() => advanceQuestion(res), 1000);
+    else { setShowNextButton(true); triggerShake(); }
   };
   const progress = cards.length ? ((idx + 1) / cards.length) * 100 : 0;
   const isSaved = savedIds.includes(card.id);
   return (
-    <div className="mcq-game game-shell">
+    <div className={`mcq-game game-shell ${shaking ? "shake" : ""}`}>
       <div className="game-header">
         <button type="button" className="icon-btn" onClick={onExit} aria-label={t("back")}><CloseIcon /></button>
         <div style={{ textAlign: "center", flex: 1 }}>
@@ -225,10 +259,10 @@ function MCQGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings
       <div className={`progress-bar ${progress >= 100 ? "progress-complete" : ""}`}><div className="progress-fill" style={{ width: progress + "%" }} /></div>
       <div key={card.id} className="mcq-word-box glass" style={{position: 'relative'}}>
         <div style={{position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', zIndex: 5}}>
-          <button type="button" className="icon-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onClick={(e) => { e.stopPropagation(); onToggleSaved(card.id); }}><BookmarkIcon filled={isSaved} /></button>
-          <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(card.word, set.lang1); }}><SpeakerIcon /></button>
+          <button type="button" className="icon-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onClick={(e) => { e.stopPropagation(); pulseSaveButton(e, () => onToggleSaved(card.id)); }}><BookmarkIcon filled={isSaved} /></button>
+          <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(card.word, card.lang1 || card.source_language || set.lang1); }}><SpeakerIcon /></button>
         </div>
-        <div style={{paddingTop: 30}} lang={card.lang1 || set.lang1}>{card.word}</div>
+        <div style={{paddingTop: 30}} lang={card.lang1 || card.source_language || set.lang1}>{card.word}</div>
       </div>
       <div className="mcq-options">
         {options.map((opt, i) => {
@@ -240,6 +274,7 @@ function MCQGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSettings
           return (<button type="button" key={i} className={cls} disabled={selected !== null} onClick={() => choose(opt)}>{opt}</button>);
         })}
       </div>
+      {showNextButton && <button type="button" className="btn btn-primary btn-block ui-btn ui-btn-primary mcq-next-button" onClick={() => advanceQuestion(results)}>{t("mcqNext")}</button>}
     </div>
   );
 }
@@ -253,6 +288,7 @@ function SpellingGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
   const [idx, setIdx] = useState(0);
   const [val, setVal] = useState("");
   const [msg, setMsg] = useState(null);
+  const [shaking, triggerShake] = useScreenShake();
   const [results, setResults] = useState([]);
   const card = cards[idx];
   useEffect(() => {
@@ -267,6 +303,7 @@ function SpellingGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
     if (!card || msg) return;
     const ok = val.trim().toLowerCase() === card.word.toLowerCase();
     setMsg(ok ? "correct" : "wrong");
+    if (!ok) triggerShake();
     if (onReview) onReview(ok);
     const res = [...results, { id: card.id, correct: ok, word: card.word, translation: card.translation }];
     setResults(res);
@@ -276,10 +313,11 @@ function SpellingGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
     }, 1500);
   };
   const progress = cards.length ? ((idx + 1) / cards.length) * 100 : 0;
-  const l2 = getLang(set.lang2);
+  const cardLang2 = card.lang2 || card.target_language || set.lang2;
+  const l2 = getLang(cardLang2);
   const isSaved = savedIds.includes(card.id);
   return (
-    <div className="spelling-game game-shell">
+    <div className={`spelling-game game-shell ${shaking ? "shake" : ""}`}>
       <div className="game-header">
         <button type="button" className="icon-btn" onClick={onExit} aria-label={t("back")}><CloseIcon /></button>
         <div style={{ textAlign: "center", flex: 1 }}>
@@ -291,11 +329,11 @@ function SpellingGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceSet
       <div className={`progress-bar ${progress >= 100 ? "progress-complete" : ""}`}><div className="progress-fill" style={{ width: progress + "%" }} /></div>
       <div key={card.id} className={`spelling-box glass ${msg ? `answer-feedback-${msg}` : ""}`} style={{position: 'relative'}}>
         <div style={{position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', justifyContent: 'space-between', zIndex: 5}}>
-          <button type="button" className="icon-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onClick={(e) => { e.stopPropagation(); onToggleSaved(card.id); }}><BookmarkIcon filled={isSaved} /></button>
-          <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(card.translation, set.lang2); }}><SpeakerIcon /></button>
+          <button type="button" className="icon-btn save-word-btn" aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved} onClick={(e) => { e.stopPropagation(); pulseSaveButton(e, () => onToggleSaved(card.id)); }}><BookmarkIcon filled={isSaved} /></button>
+          <button type="button" className="icon-btn" onClick={(e) => { e.stopPropagation(); speakText(card.translation, cardLang2); }}><SpeakerIcon /></button>
         </div>
         <div style={{marginTop: 30, fontSize: 13, color: "var(--text-light)", fontWeight: 600}}><UiIcon name="globe" size={16} /> {t("listenWrite")}</div>
-        <div className="spelling-translation" dir={l2.dir} lang={card.lang2 || set.lang2}>{card.translation}</div>
+        <div className="spelling-translation" dir={l2.dir} lang={cardLang2}>{card.translation}</div>
       </div>
       <input className={`spelling-input ui-input ${msg || ""}`} value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => { if (e.key === "Enter") submit(); }} placeholder={t("typeWord")} disabled={!!msg} autoFocus />
       {msg === "wrong" && (<div style={{ textAlign: "center", color: "var(--danger)", fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><CrossIcon size={16} color="#7B2D2D" /> {card.word}</div>)}
@@ -327,6 +365,7 @@ function MatchingGame({ set, savedIds, onToggleSaved, onFinish, onExit, onReview
   const [permanentMatchedIds, setPermanentMatchedIds] = useState([]);
   const [greenFlashIds, setGreenFlashIds] = useState([]);
   const [wrongFlashIds, setWrongFlashIds] = useState([]);
+  const [shaking, triggerShake] = useScreenShake();
   const [results, setResults] = useState([]);
   const [wordCard, setWordCard] = useState(null);
   useEffect(() => {
@@ -352,16 +391,17 @@ function MatchingGame({ set, savedIds, onToggleSaved, onFinish, onExit, onReview
       }, 1000);
     } else {
       setWrongFlashIds([selA.id, selB.id]);
+      triggerShake();
       setTimeout(() => { setWrongFlashIds([]); setSelA(null); setSelB(null); }, 1000);
     }
-  }, [selA, selB, pairs.length, permanentMatchedIds, results, initialPairs, onReview, onFinish, onGameComplete]);
+  }, [selA, selB, pairs.length, permanentMatchedIds, results, initialPairs, onReview, onFinish, onGameComplete, triggerShake]);
   if (pairs.length < 2) return (<div className="glass results-box"><p>{t("noWords")}</p><button type="button" className="btn btn-primary" onClick={onExit}>{t("home")}</button></div>);
   const l1 = getLang(set.lang1);
   const l2 = getLang(set.lang2);
   const leftFiltered = leftWords.filter(i => !permanentMatchedIds.includes(i.id) && !savedIds.includes(i.id));
   const rightFiltered = rightTrans.filter(i => !permanentMatchedIds.includes(i.id) && !savedIds.includes(i.id));
   return (
-    <div className="matching-game game-shell">
+    <div className={`matching-game game-shell ${shaking ? "shake" : ""}`}>
       <div className="game-header">
         <button type="button" className="icon-btn" onClick={onExit} aria-label={t("back")}><CloseIcon /></button>
         <div style={{ textAlign: "center", flex: 1 }}>
@@ -378,7 +418,7 @@ function MatchingGame({ set, savedIds, onToggleSaved, onFinish, onExit, onReview
               const isGreen = greenFlashIds.includes(item.id);
               const isWrong = wrongFlashIds.includes(item.id);
               return (
-                <MatchWordButton key={item.id} item={item} side="right" text={item.translation} lang={item.lang2 || set.lang2} dir={l2.dir} isSelected={isSelected} isGreen={isGreen} isWrong={isWrong} onSelect={() => { if (!selA || !selB) setSelB(item); }} onOpen={(word, side) => setWordCard({ item: word, side })} />
+                <MatchWordButton key={item.id} item={item} side="right" text={item.translation} lang={item.lang2 || item.target_language || set.lang2} dir={getLang(item.lang2 || item.target_language || set.lang2).dir} isSelected={isSelected} isGreen={isGreen} isWrong={isWrong} onSelect={() => { if (!selA || !selB) setSelB(item); }} onOpen={(word, side) => setWordCard({ item: word, side })} />
               );
             })}
           </div>
@@ -391,7 +431,7 @@ function MatchingGame({ set, savedIds, onToggleSaved, onFinish, onExit, onReview
               const isGreen = greenFlashIds.includes(item.id);
               const isWrong = wrongFlashIds.includes(item.id);
               return (
-                <MatchWordButton key={item.id} item={item} side="left" text={item.word} lang={item.lang1 || set.lang1} dir={l1.dir} isSelected={isSelected} isGreen={isGreen} isWrong={isWrong} onSelect={() => { if (!selA || !selB) setSelA(item); }} onOpen={(word, side) => setWordCard({ item: word, side })} />
+                <MatchWordButton key={item.id} item={item} side="left" text={item.word} lang={item.lang1 || item.source_language || set.lang1} dir={getLang(item.lang1 || item.source_language || set.lang1).dir} isSelected={isSelected} isGreen={isGreen} isWrong={isWrong} onSelect={() => { if (!selA || !selB) setSelA(item); }} onOpen={(word, side) => setWordCard({ item: word, side })} />
               );
             })}
           </div>
@@ -401,11 +441,11 @@ function MatchingGame({ set, savedIds, onToggleSaved, onFinish, onExit, onReview
         <div className="match-card-backdrop" onClick={() => setWordCard(null)}>
           <div className="match-card" role="dialog" aria-modal="true" aria-label="Word details" onClick={e => e.stopPropagation()}>
             <button type="button" className="match-card-close" onClick={() => setWordCard(null)} aria-label="Close">×</button>
-            <div className="match-card-word" dir={wordCard.side === "right" ? l2.dir : l1.dir} lang={wordCard.side === "right" ? (wordCard.item.lang2 || set.lang2) : (wordCard.item.lang1 || set.lang1)}>{wordCard.side === "right" ? wordCard.item.translation : wordCard.item.word}</div>
-            <div className="match-card-translation" dir={wordCard.side === "right" ? l1.dir : l2.dir} lang={wordCard.side === "right" ? (wordCard.item.lang1 || set.lang1) : (wordCard.item.lang2 || set.lang2)}>{wordCard.side === "right" ? wordCard.item.word : wordCard.item.translation}</div>
+            <div className="match-card-word" dir={getLang(wordCard.side === "right" ? (wordCard.item.lang2 || wordCard.item.target_language || set.lang2) : (wordCard.item.lang1 || wordCard.item.source_language || set.lang1)).dir} lang={wordCard.side === "right" ? (wordCard.item.lang2 || wordCard.item.target_language || set.lang2) : (wordCard.item.lang1 || wordCard.item.source_language || set.lang1)}>{wordCard.side === "right" ? wordCard.item.translation : wordCard.item.word}</div>
+            <div className="match-card-translation" dir={getLang(wordCard.side === "right" ? (wordCard.item.lang1 || wordCard.item.source_language || set.lang1) : (wordCard.item.lang2 || wordCard.item.target_language || set.lang2)).dir} lang={wordCard.side === "right" ? (wordCard.item.lang1 || wordCard.item.source_language || set.lang1) : (wordCard.item.lang2 || wordCard.item.target_language || set.lang2)}>{wordCard.side === "right" ? wordCard.item.word : wordCard.item.translation}</div>
             <div className="match-card-actions">
-              <button type="button" className="match-card-btn" onClick={() => speakText(wordCard.side === "right" ? wordCard.item.translation : wordCard.item.word, wordCard.side === "right" ? set.lang2 : set.lang1)} aria-label="Speak"><SpeakerIcon /></button>
-              <button type="button" className="match-card-btn save-word-btn" onClick={() => onToggleSaved(wordCard.item.id)} aria-label={savedIds.includes(wordCard.item.id) ? t("saved") : t("save")} aria-pressed={savedIds.includes(wordCard.item.id)}><BookmarkIcon filled={savedIds.includes(wordCard.item.id)} /></button>
+              <button type="button" className="match-card-btn" onClick={() => speakText(wordCard.side === "right" ? wordCard.item.translation : wordCard.item.word, wordCard.side === "right" ? (wordCard.item.lang2 || wordCard.item.target_language || set.lang2) : (wordCard.item.lang1 || wordCard.item.source_language || set.lang1))} aria-label="Speak"><SpeakerIcon /></button>
+              <button type="button" className="match-card-btn save-word-btn" onClick={e => pulseSaveButton(e, () => onToggleSaved(wordCard.item.id))} aria-label={savedIds.includes(wordCard.item.id) ? t("saved") : t("save")} aria-pressed={savedIds.includes(wordCard.item.id)}><BookmarkIcon filled={savedIds.includes(wordCard.item.id)} /></button>
             </div>
           </div>
         </div>
@@ -653,6 +693,7 @@ function DicteeGame({ onExit, onGameComplete }) {
     audio.onpause = () => { if (!audio.ended) setPlayerStatus("paused"); };
     audio.onended = () => { setAudioTime(Number.isFinite(audio.duration) ? audio.duration : audio.currentTime || 0); setPlayerStatus("ended"); };
     audio.onerror = () => {
+      console.warn("Dictation audio playback failed; trying browser speech synthesis.");
       audioRef.current = null;
       if (window.speechSynthesis) {
         const runId = ++speechRunRef.current;

@@ -247,11 +247,17 @@ const FOLDER_COPY = {
 };
 Object.keys(FOLDER_COPY).forEach(code => Object.assign(LOCALES[code], FOLDER_COPY[code]));
 const HOME_COPY = {
-  ar: { home_morning: "صباح الخير", home_afternoon: "مرحبًا", home_evening: "مساء الخير", home_subtitle: "واصل تعلّمك", home_progress: "تقدمك اليوم", home_progress_count: "{n}/{max} كلمات تمت مراجعتها", home_continue: "متابعة", home_explore: "استكشف الألعاب", home_word_of_day: "كلمة اليوم" },
-  fr: { home_morning: "Bonjour", home_afternoon: "Bonjour", home_evening: "Bonsoir", home_subtitle: "Continue ton apprentissage", home_progress: "Progression du jour", home_progress_count: "{n}/{max} mots révisés", home_continue: "Continuer", home_explore: "Explorer les jeux", home_word_of_day: "Mot du jour" },
-  en: { home_morning: "Good morning", home_afternoon: "Good afternoon", home_evening: "Good evening", home_subtitle: "Continue your learning", home_progress: "Today's progress", home_progress_count: "{n}/{max} words reviewed", home_continue: "Continue", home_explore: "Explore games", home_word_of_day: "Word of the day" }
+  ar: { home_morning: "صباح الخير", home_afternoon: "مرحبًا", home_evening: "مساء الخير", home_subtitle: "واصل تعلّمك", home_progress: "تقدمك اليوم", home_progress_count: "{n}/{max} كلمات تمت مراجعتها", home_daily_words_title: "كلمات اليوم", home_daily_words_count: "عدد الكلمات", home_daily_words_hint: "اضغط لرؤية الترجمة", home_daily_words_empty: "اختر مجلدًا لعرض كلماتك.", home_daily_all_saved: "كل كلمات هذا المجلد محفوظة في الملجأ.", home_daily_moved_to_sanctuary: "نُقلت الكلمة إلى الملجأ" },
+  fr: { home_morning: "Bonjour", home_afternoon: "Bonjour", home_evening: "Bonsoir", home_subtitle: "Continue ton apprentissage", home_progress: "Progression du jour", home_progress_count: "{n}/{max} mots révisés", home_daily_words_title: "Mots du jour", home_daily_words_count: "Nombre de mots", home_daily_words_hint: "Appuyez pour voir la traduction", home_daily_words_empty: "Sélectionnez un dossier pour voir vos mots.", home_daily_all_saved: "Tous les mots de ce dossier sont dans le Sanctuaire.", home_daily_moved_to_sanctuary: "Mot déplacé vers le Sanctuaire" },
+  en: { home_morning: "Good morning", home_afternoon: "Good afternoon", home_evening: "Good evening", home_subtitle: "Continue your learning", home_progress: "Today's progress", home_progress_count: "{n}/{max} words reviewed", home_daily_words_title: "Daily Words", home_daily_words_count: "Number of words", home_daily_words_hint: "Tap to see translation", home_daily_words_empty: "Select a folder to see your words.", home_daily_all_saved: "All words in this folder are saved in Sanctuary.", home_daily_moved_to_sanctuary: "Moved to Sanctuary" }
 };
 Object.keys(HOME_COPY).forEach(code => Object.assign(LOCALES[code], HOME_COPY[code]));
+const GAME_ACTION_COPY = {
+  ar: { presetAdding: "جارٍ الإضافة...", mcqNext: "التالي" },
+  fr: { presetAdding: "Ajout en cours...", mcqNext: "Suivant" },
+  en: { presetAdding: "Adding...", mcqNext: "Next" }
+};
+Object.keys(GAME_ACTION_COPY).forEach(code => Object.assign(LOCALES[code], GAME_ACTION_COPY[code]));
 const TRANSLATE_PAGE_COPY = {
   ar: { traduire_subtitle: "ترجم فورًا بين لغاتك" },
   fr: { traduire_subtitle: "Traduisez instantanément" },
@@ -439,6 +445,7 @@ function useSpeech(defaultRate = 0.9, defaultPitch = 1.0) {
       const fallback = () => {
         if (!fellBack) {
           fellBack = true;
+          console.warn("Google TTS playback failed; trying browser speech synthesis.");
           audioRef.current = null;
           setSpeaking(false);
           speakWithSpeechSynthesis(cleanText, mappedLang, options, () => {});
@@ -958,9 +965,6 @@ function ProfileCard({ user, usage, savedCount, onAvatarClick, variant }) {
           <h2 className="home-welcome-title">{t(greetingKey)}{locale === "ar" ? "، " : ", "}{displayName}</h2>
           <p className="home-welcome-subtitle">{t("home_subtitle")}</p>
         </div>
-        <button type="button" className="home-avatar" onClick={onAvatarClick} aria-label={t("changePic")} title={t("changePic")}>
-          {user?.avatar || user?.avatar_url ? <img src={user.avatar || user.avatar_url} alt="" /> : initial}
-        </button>
       </header>
     );
   }

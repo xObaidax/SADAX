@@ -110,8 +110,8 @@ function AppContent() {
   const [currentSetId, setCurrentSetId] = useState(sets[0]?.id || null);
   const [playAllFiles, setPlayAllFiles] = useState(true);
   const [selectedFileIds, setSelectedFileIds] = useState([]);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [guestNoticeDismissed, setGuestNoticeDismissed] = useState(() => { try { return localStorage.getItem("vocaflow_guest_notice_dismissed") === "1"; } catch { return false; } });
+  const [numberOfWords, setNumberOfWords] = useState(1);
+  const [revealedCards, setRevealedCards] = useState([]);
   const [gameType, setGameType] = useState("flashcards");
   const [gameKey, setGameKey] = useState(0);
   const [retryWrong, setRetryWrong] = useState(false);
@@ -119,6 +119,8 @@ function AppContent() {
   const [modal, setModal] = useState(null);
   const [newSet, setNewSet] = useState({ name: "", lang1: "fr", lang2: "ar" });
   const [essentialLangs, setEssentialLangs] = useState({ lang1: "fr", lang2: "ar" });
+  const [isAddingPreset, setIsAddingPreset] = useState(false);
+  const presetAddInFlightRef = useRef(false);
   const [loginData, setLoginData] = useState({ name: "", email: "" });
   const [loginStep, setLoginStep] = useState("email");
   const [otpPurpose, setOtpPurpose] = useState("login");
@@ -208,8 +210,6 @@ function AppContent() {
         if (active) setModal(null);
       } catch (error) {
         if (active) toast(error.message, "error");
-      } finally {
-        if (active) setAuthChecked(true);
       }
     })();
     return () => { active = false; };
@@ -292,6 +292,7 @@ function AppContent() {
   const currentSet = sets.find(s => s.id === currentSetId) || null;
   const savedWords = sets.flatMap(s => s.words.filter(w => savedIds.includes(w.id)).map(w => ({ ...w, lang1: s.lang1, lang2: s.lang2 })));
   const savedSet = savedWords.length ? { id: "saved", name: t("sanctuary"), lang1: savedWords[0].lang1, lang2: savedWords[0].lang2, words: savedWords } : null;
+  useEffect(() => { if (view === "game" && gameType === "saved" && !savedWords.length) setView("home"); }, [view, gameType, savedWords.length]);
   const totalWords = sets.reduce((acc, s) => acc + s.words.length, 0);
   const masteredCount = sets.reduce((acc, set) => acc + set.words.filter(word => Number(word.mastery_level) > 0).length, 0);
   const todayKey = new Date().toISOString().slice(0, 10);
@@ -305,8 +306,9 @@ function AppContent() {
     if ((activity?.reviewed || 0) > 0 || (activity?.added || 0) > 0) homeStreak++;
     else if (i > 0) break;
   }
-  const dailyWordSet = currentSet?.words.length ? currentSet : sets.find(set => set.words.length);
-  const dailyWord = dailyWordSet?.words[new Date().getDate() % dailyWordSet.words.length];
+  const dailyWordSet = currentSet;
+  const dailyWords = dailyWordSet?.words.filter(word => !savedIds.includes(word.id)).slice(0, numberOfWords) || [];
+  useEffect(() => { if (view !== "home" || mainTab !== "home") setRevealedCards([]); }, [view, mainTab]);
   const playableWords = currentSet ? (playAllFiles ? currentSet.words : currentSet.words.filter(word => selectedFileIds.includes(word.fileId))) : [];
   const hasFileSelection = playAllFiles || selectedFileIds.length > 0;
   const fileSelectionHint = locale === "ar" ? "اختر ملفًا واحدًا على الأقل أو الكل" : locale === "fr" ? "Sélectionnez au moins un fichier ou Tous" : "Select at least one file or All";
@@ -520,9 +522,13 @@ function AppContent() {
     }
   };
   const openEssentialFolder = async () => {
+    if (presetAddInFlightRef.current) return;
     const lang1 = essentialLangs.lang1;
     const lang2 = essentialLangs.lang2;
     if (lang1 === lang2) { toast(t("sameLangError"), "error"); return; }
+    presetAddInFlightRef.current = true;
+    setIsAddingPreset(true);
+    try {
     const id = "essential_" + lang1 + "_" + lang2;
     const existing = sets.find(s => s.id === id);
     if (existing) {
@@ -544,42 +550,30 @@ function AppContent() {
           set = { ...set, serverId: savedFolder.id };
         } catch (error) { warnFolderSync(error); }
       }
-      setSets(prev => [...prev, set]);
+      setSets(prev => prev.some(item => item.id === id) ? prev : [...prev, set]);
       setCurrentSetId(id);
     }
     setModal(null);
     setMainTab("games");
     toast(t("folderReady"), "success");
+    } finally {
+      presetAddInFlightRef.current = false;
+      setIsAddingPreset(false);
+    }
   };
   const startGame = (type) => {
     if (type === "saved") {
       if (!savedWords.length) { toast(t("noSaved"), "error"); return; }
-      try { localStorage.setItem("vocaflow_last_game", type); } catch {}
       setGameType("saved"); setRetryWrong(false); setGameKey(Date.now()); setView("game");
       return;
     }
     if (type === "dictee") {
-      try { localStorage.setItem("vocaflow_last_game", type); } catch {}
       setGameType("dictee"); setRetryWrong(false); setGameKey(Date.now()); setView("game");
       return;
     }
     if (!currentSet) { toast(t("needSelectSet"), "error"); return; }
     if (!playableWords.length) { toast(t("noWords"), "error"); return; }
-    try { localStorage.setItem("vocaflow_last_game", type); } catch {}
     setGameType(type); setRetryWrong(false); setGameKey(Date.now()); setView("game");
-  };
-  const continueLearning = () => {
-    let lastGame = null;
-    try { lastGame = localStorage.getItem("vocaflow_last_game"); } catch {}
-    if (!currentSet) { setMainTab("games"); return; }
-    const folderReady = currentSet && playableWords.length > 0;
-    if (lastGame === "dictee" || (lastGame === "saved" && savedWords.length) || (folderReady && ["flashcards", "mcq", "spelling", "matching"].includes(lastGame))) {
-      startGame(lastGame);
-    } else if (folderReady) {
-      startGame("flashcards");
-    } else {
-      setMainTab("games");
-    }
   };
   const finishGame = (results) => {
     const total = results.length;
@@ -676,15 +670,7 @@ function AppContent() {
           </div>
           {mainTab === 'home' && (
             <div className="tab-content">
-              {authChecked && !user && totalWords >= 5 && !guestNoticeDismissed && <div className="guest-notice-banner">
-                <span className="guest-notice-title">{t("guest_notice_title")}</span>
-                <div className="guest-notice-actions">
-                  <button type="button" className="guest-notice-button" onClick={() => startLogin("login")}>{t("guest_notice_button")}</button>
-                  <button type="button" className="guest-notice-dismiss" onClick={() => { setGuestNoticeDismissed(true); try { localStorage.setItem("vocaflow_guest_notice_dismissed", "1"); } catch {} }}>{t("guest_notice_dismiss")}</button>
-                </div>
-              </div>}
-              <ProfileCard variant="home" user={user} usage={usage} savedCount={savedWords.length} onAvatarClick={() => document.getElementById("avatar-upload").click()} />
-              <input type="file" id="avatar-upload" accept="image/*" style={{ display: "none" }} onChange={e => handleAvatarUpload(e.target.files[0])} />
+              <ProfileCard variant="home" user={user} usage={usage} savedCount={savedWords.length} />
               <div className="home-stats-strip">
                 <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 1 }}><strong>{totalWords}</strong><span>{t("totalWords")}</span></div>
                 <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 2 }}><strong>{homeStreak}</strong><span>{t("daysStreak")}</span></div>
@@ -695,15 +681,36 @@ function AppContent() {
                 <div className="home-progress-track" role="progressbar" aria-valuenow={Math.min(todayReviewed, dailyGoal)} aria-valuemin="0" aria-valuemax={dailyGoal} aria-label={t("home_progress")}><div className="home-progress-fill" style={{ width: `${Math.min(100, todayReviewed / dailyGoal * 100)}%` }} /></div>
                 <p>{t("home_progress_count").replace("{n}", todayReviewed).replace("{max}", dailyGoal)}</p>
               </section>
-              <div className="home-actions stagger-enter" style={{ '--index': 5 }}>
-                <button type="button" className="ui-btn ui-btn-primary" onClick={continueLearning}>{t("home_continue")}</button>
-                <button type="button" className="ui-btn ui-btn-secondary" onClick={() => setMainTab("games")}>{t("home_explore")}</button>
-              </div>
-              <section className="home-daily-word ui-card stagger-enter" style={{ '--index': 6 }}>
-                <h3>{t("home_word_of_day")}</h3>
-                {dailyWord ? <div className="home-daily-word-content"><div><strong lang={dailyWordSet.lang1}>{dailyWord.word}</strong><span lang={dailyWordSet.lang2}>{dailyWord.translation}</span></div><button type="button" className="ui-btn-icon" onClick={() => speakText(dailyWord.word, dailyWordSet.lang1)} aria-label={t("traduire_speak")}><SpeakerIcon size={20} /></button></div> : <p>{t("noWords")}</p>}
+              <section className="home-daily-word ui-card stagger-enter" style={{ '--index': 5 }}>
+                <h3>{t("home_daily_words_title")}</h3>
+                <p className="home-daily-hint" id="home-daily-hint">{t("home_daily_words_hint")}</p>
+                <div className="home-daily-controls">
+                  <div className="home-daily-count-control">
+                    <label htmlFor="home-daily-count">{t("home_daily_words_count")} <output htmlFor="home-daily-count">{numberOfWords}</output></label>
+                    <input id="home-daily-count" type="range" min="1" max="10" value={numberOfWords} onChange={e => setNumberOfWords(Number(e.target.value))} />
+                  </div>
+                </div>
+                {!dailyWords.length ? <p className="home-daily-empty">{dailyWordSet?.words.length ? t("home_daily_all_saved") : t("home_daily_words_empty")}</p> : (
+                  <div className="home-daily-list">
+                    {dailyWords.map((word, index) => {
+                      const cardKey = `${dailyWordSet.id}:${word.id ?? index}`;
+                      const revealed = revealedCards.includes(cardKey);
+                      const isSaved = savedIds.includes(word.id);
+                      return <div key={cardKey} className={`home-daily-entry ui-card ${revealed ? "revealed" : ""}`} onClick={() => setRevealedCards(previous => previous.includes(cardKey) ? previous : [...previous, cardKey])}>
+                        <div className="home-daily-entry-main">
+                          <button type="button" className="home-daily-reveal" aria-expanded={revealed} aria-describedby="home-daily-hint" lang={word.lang1 || dailyWordSet.lang1}>{word.word}</button>
+                          <div className="home-daily-entry-actions">
+                            <button type="button" className="ui-btn-icon" onClick={event => { event.stopPropagation(); speakText(word.word, word.lang1 || dailyWordSet.lang1); }} aria-label={`${t("traduire_speak")}: ${word.word}`}><SpeakerIcon size={20} /></button>
+                            <button type="button" className="ui-btn-icon home-daily-save" onClick={event => { event.stopPropagation(); toggleSaved(word.id); toast(t("home_daily_moved_to_sanctuary"), "success"); }} aria-label={isSaved ? t("saved") : t("save")} aria-pressed={isSaved}><BookmarkIcon filled={isSaved} size={20} /></button>
+                          </div>
+                        </div>
+                        <div className="home-daily-translation" aria-hidden={!revealed}><span lang={word.lang2 || dailyWordSet.lang2}>{word.translation}</span></div>
+                      </div>;
+                    })}
+                  </div>
+                )}
               </section>
-              <div className="stagger-enter" style={{ '--index': 7 }}><Sanctuary count={savedWords.length} onPlay={() => startGame("saved")} /></div>
+              <div className="stagger-enter" style={{ '--index': 6 }}><Sanctuary count={savedWords.length} onPlay={() => startGame("saved")} /></div>
             </div>
           )}
           {mainTab === 'traduire' && (<TranslatePage draft={translatorDraft} setDraft={setTranslatorDraft} />)}
@@ -845,7 +852,7 @@ function AppContent() {
             </div>
             <div className="modal-actions">
               <button type="button" className="btn btn-secondary ui-btn-secondary" onClick={() => setModal(null)}>{t("cancel")}</button>
-              <button type="button" className="btn btn-primary" onClick={openEssentialFolder}><FolderIcon /> {t("openFolder")}</button>
+              <button type="button" className="btn btn-primary" onClick={openEssentialFolder} disabled={isAddingPreset} aria-busy={isAddingPreset}><FolderIcon /> {isAddingPreset ? t("presetAdding") : t("openFolder")}</button>
             </div>
           </div>
         </div>
