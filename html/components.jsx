@@ -145,7 +145,9 @@ function ActivityView({ usage, totalWords, masteredCount, stats }) {
             const dayKey = `${sheet.month}-${String(dayNum).padStart(2, '0')}`;
             const dayData = dailyActivity[dayKey];
             const hasActivity = dayData && (dayData.reviewed > 0 || dayData.added > 0);
-            return (<div key={dayNum} className={`calendar-day ${hasActivity ? 'has-activity' : 'empty'}`} onClick={() => hasActivity && setSelectedDayData({ key: dayKey, dayNum, data: dayData })}>{dayNum}</div>);
+            const isSelectedDay = selectedDayData?.key === dayKey;
+            const selectDay = () => { if (hasActivity) setSelectedDayData({ key: dayKey, dayNum, data: dayData }); };
+            return (<div key={dayNum} className={`calendar-day ${hasActivity ? 'has-activity' : 'empty'} ${isSelectedDay ? 'is-selected-day' : ''}`} role={hasActivity ? "button" : undefined} tabIndex={hasActivity ? 0 : undefined} aria-pressed={hasActivity ? isSelectedDay : undefined} aria-label={hasActivity ? `${dayNum} ${monthNames[m - 1]} ${y}` : undefined} onClick={selectDay} onKeyDown={event => { if (hasActivity && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); selectDay(); } }}>{dayNum}</div>);
           })}
         </div>
         {selectedDayData && selectedDayData.key.startsWith(sheet.month) && (
@@ -154,11 +156,15 @@ function ActivityView({ usage, totalWords, masteredCount, stats }) {
               <div className="popover-title">{monthNames[m - 1]} {selectedDayData.dayNum}, {y}</div>
               <button className="sheet-close ui-btn-icon" onClick={() => setSelectedDayData(null)} aria-label="Close"><CloseIcon /></button>
             </div>
-            <div className="popover-stat"><span className="popover-stat-label"><BookIcon size={14} color="var(--color-primary)" /> {t("reviewedWords")}</span><span className="popover-stat-value">{selectedDayData.data.reviewed || 0}</span></div>
-            <div className="popover-stat"><span className="popover-stat-label"><PlusIcon size={14} /> {t("wordsAdded")}</span><span className="popover-stat-value">{selectedDayData.data.added || 0}</span></div>
-            <div className="popover-stat"><span className="popover-stat-label"><CheckIcon size={14} color="#2D6A4F" /> {t("correctAnswers")}</span><span className="popover-stat-value">{selectedDayData.data.correct || 0}</span></div>
-            <div className="popover-stat"><span className="popover-stat-label"><CrossIcon size={14} color="#7B2D2D" /> {t("wrong")}</span><span className="popover-stat-value">{selectedDayData.data.wrong || 0}</span></div>
-            <div className="popover-stat"><span className="popover-stat-label"><ClockIcon size={14} /> {t("time")}</span><span className="popover-stat-value">{usage.fmt(usage.daily?.[selectedDayData.key] || 0)}</span></div>
+            {[
+              { key: "reviewed", icon: <BookIcon size={14} color="var(--color-primary)" />, label: t("reviewedWords"), value: selectedDayData.data.reviewed || 0 },
+              { key: "added", icon: <PlusIcon size={14} />, label: t("wordsAdded"), value: selectedDayData.data.added || 0 },
+              { key: "correct", icon: <CheckIcon size={14} color="#2D6A4F" />, label: t("correctAnswers"), value: selectedDayData.data.correct || 0 },
+              { key: "wrong", icon: <CrossIcon size={14} color="#7B2D2D" />, label: t("wrong"), value: selectedDayData.data.wrong || 0 },
+              { key: "time", icon: <ClockIcon size={14} />, label: t("time"), value: usage.fmt(usage.daily?.[selectedDayData.key] || 0) }
+            ].map((stat, index) => (
+              <div key={stat.key} className="popover-stat" style={{ animation: 'slide-up 300ms ease-out both', animationDelay: `${index * 60}ms` }}><span className="popover-stat-label">{stat.icon} {stat.label}</span><span className="popover-stat-value">{stat.value}</span></div>
+            ))}
           </div>
         )}
       </div>

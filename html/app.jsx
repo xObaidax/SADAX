@@ -670,7 +670,7 @@ function AppContent() {
           </div>
           {mainTab === 'home' && (
             <div className="tab-content">
-              <ProfileCard variant="home" user={user} usage={usage} savedCount={savedWords.length} />
+              <ProfileCard variant="home" user={user} usage={usage} />
               <div className="home-stats-strip">
                 <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 1 }}><strong>{totalWords}</strong><span>{t("totalWords")}</span></div>
                 <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 2 }}><strong>{homeStreak}</strong><span>{t("daysStreak")}</span></div>
@@ -756,25 +756,9 @@ function AppContent() {
             <div className="tab-content settings-page">
               <h2 className="main-page-title settings-page-title">{t("settings_page_title")}</h2>
               <input type="file" id="avatar-upload2" accept="image/*" style={{ display: "none" }} onChange={e => handleAvatarUpload(e.target.files[0])} />
-              <section className="settings-section ui-card stagger-enter" style={{ '--index': 0, '--stagger-step': '60ms' }}>
-                <h3>{t("settings_appearance")}</h3>
-                <div className="theme-toggle-row ui-card-compact" role="switch" aria-checked={theme === "dark"} aria-label={theme === "light" ? t("darkMode") : t("lightMode")} tabIndex={0} onClick={toggleTheme} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } }}>
-                  <span className="theme-toggle-label">{theme === "light" ? <MoonIcon size={20} /> : <SunIcon size={20} />}{theme === "light" ? t("darkMode") : t("lightMode")}</span>
-                  <div className={`theme-toggle-switch ${theme === "dark" ? "active" : ""}`} />
-                </div>
-              </section>
-              <section className="settings-section ui-card stagger-enter" style={{ '--index': 1, '--stagger-step': '60ms' }}>
-                <h3>{t("settings_language")}</h3>
-                <div className="field"><label htmlFor="settings-language"><UiIcon name="globe" size={18} /> {t("language")}</label><select id="settings-language" className="ui-input" value={locale} onChange={e => setLocale(e.target.value)}>{langs.map(l => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}</select></div>
-              </section>
-              <section className="settings-section ui-card stagger-enter" style={{ '--index': 2, '--stagger-step': '60ms' }}>
-                <h3>{t("settings_audio")}</h3>
-                <div className="field"><label htmlFor="settings-rate"><UiIcon name="bolt" size={18} /> {t("speechRate")}: {voiceSettings.rate.toFixed(2)}</label><div className="slider-wrap"><UiIcon name="turtle" size={18} /><input id="settings-rate" type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.rate} onChange={e => setVoiceSettings({ ...voiceSettings, rate: parseFloat(e.target.value) })} /><UiIcon name="rabbit" size={18} /><span className="slider-value">{voiceSettings.rate.toFixed(2)}</span></div></div>
-                <div className="field"><label htmlFor="settings-pitch"><UiIcon name="music" size={18} /> {t("pitch")}: {voiceSettings.pitch.toFixed(2)}</label><div className="slider-wrap"><UiIcon name="arrowDown" size={18} /><input id="settings-pitch" type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.pitch} onChange={e => setVoiceSettings({ ...voiceSettings, pitch: parseFloat(e.target.value) })} /><UiIcon name="arrowUp" size={18} /><span className="slider-value">{voiceSettings.pitch.toFixed(2)}</span></div></div>
-              </section>
-              <section className="settings-section settings-account ui-card stagger-enter" style={{ '--index': 3, '--stagger-step': '60ms' }}>
+              <section className="settings-section settings-account ui-card stagger-enter" style={{ '--index': 0, '--stagger-step': '60ms' }}>
                 <h3>{t("settings_account")}</h3>
-                <ProfileCard user={user} usage={usage} savedCount={savedWords.length} onAvatarClick={() => document.getElementById("avatar-upload2").click()} />
+                <ProfileCard user={user} usage={usage} totalWords={totalWords} streak={homeStreak} onAvatarClick={() => document.getElementById("avatar-upload2").click()} />
                 {!user ? (
                    <button type="button" className="ui-btn ui-btn-primary btn-block" onClick={() => startLogin("login")}><UiIcon name="lock" /> {t("login")}</button>
                 ) : (
@@ -784,13 +768,13 @@ function AppContent() {
                    </div>
                 )}
               </section>
-              <section className="settings-section ui-card stagger-enter" style={{ '--index': 4, '--stagger-step': '60ms' }}>
-                <h3>{t("settings_data")}</h3>
-                <div className="settings-data-actions">
-                  <button type="button" className="ui-btn ui-btn-secondary" onClick={handleExport}><UiIcon name="download" /> {t("exportData")}</button>
-                  <label className="file-upload-wrap ui-btn ui-btn-secondary"><FolderIcon size={18} /> {t("importData")}<input type="file" accept=".json" onChange={e => handleImport(e.target.files[0])} /></label>
-                  <button type="button" className="ui-btn ui-btn-danger" onClick={handleReset}><TrashIcon /> {t("resetAll")}</button>
+              <section className="settings-section ui-card stagger-enter" style={{ '--index': 1, '--stagger-step': '60ms' }}>
+                <h3>{t("settings_appearance_language")}</h3>
+                <div className="theme-toggle-row ui-card-compact" role="switch" aria-checked={theme === "dark"} aria-label={theme === "light" ? t("darkMode") : t("lightMode")} tabIndex={0} onClick={toggleTheme} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } }}>
+                  <span className="theme-toggle-label">{theme === "light" ? <MoonIcon size={20} /> : <SunIcon size={20} />}{theme === "light" ? t("darkMode") : t("lightMode")}</span>
+                  <div className={`theme-toggle-switch ${theme === "dark" ? "active" : ""}`} />
                 </div>
+                <div className="field settings-preference-row"><label htmlFor="settings-language"><UiIcon name="globe" size={18} /> {t("language")}</label><select id="settings-language" className="ui-input" value={locale} onChange={e => setLocale(e.target.value)}>{langs.map(l => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}</select></div>
               </section>
             </div>
           )}

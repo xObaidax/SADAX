@@ -271,9 +271,9 @@ const STATS_PAGE_COPY = {
 };
 Object.keys(STATS_PAGE_COPY).forEach(code => Object.assign(LOCALES[code], STATS_PAGE_COPY[code]));
 const SETTINGS_PAGE_COPY = {
-  ar: { settings_page_title: "الإعدادات", settings_appearance: "المظهر", settings_language: "اللغة", settings_audio: "الصوت", settings_account: "الحساب", settings_data: "البيانات" },
-  fr: { settings_page_title: "Réglages", settings_appearance: "Apparence", settings_language: "Langue", settings_audio: "Audio", settings_account: "Compte", settings_data: "Données" },
-  en: { settings_page_title: "Settings", settings_appearance: "Appearance", settings_language: "Language", settings_audio: "Audio", settings_account: "Account", settings_data: "Data" }
+  ar: { settings_page_title: "الإعدادات", settings_appearance: "المظهر", settings_appearance_language: "المظهر واللغة", settings_language: "اللغة", settings_audio: "الصوت", settings_account: "الحساب", settings_data: "البيانات" },
+  fr: { settings_page_title: "Réglages", settings_appearance: "Apparence", settings_appearance_language: "Apparence & Langue", settings_language: "Langue", settings_audio: "Audio", settings_account: "Compte", settings_data: "Données" },
+  en: { settings_page_title: "Settings", settings_appearance: "Appearance", settings_appearance_language: "Appearance & Language", settings_language: "Language", settings_audio: "Audio", settings_account: "Account", settings_data: "Data" }
 };
 Object.keys(SETTINGS_PAGE_COPY).forEach(code => Object.assign(LOCALES[code], SETTINGS_PAGE_COPY[code]));
 const AUTH_GOOGLE_STATUS_COPY = {
@@ -952,7 +952,7 @@ const DEFAULT_SETS = [{
   ]
 }];
 
-function ProfileCard({ user, usage, savedCount, onAvatarClick, variant }) {
+function ProfileCard({ user, usage, totalWords, streak, onAvatarClick, variant }) {
   const { t, locale } = useI18n();
   const initial = user?.name ? user.name.charAt(0).toUpperCase() : <UiIcon name="user" size={28} />;
   if (variant === "home") {
@@ -978,9 +978,9 @@ function ProfileCard({ user, usage, savedCount, onAvatarClick, variant }) {
         </div>
       </div>
       <div className="profile-stats">
-        <div className="stat-item"><FlameIconEnhanced level={usage.level} /><span><span className="value">{usage.level}</span><div className="stat-label">{t("level")}</div></span></div>
-        <div className="stat-item"><ClockIcon size={24} /><span><span className="value">{usage.fmt(usage.today)}</span><div className="stat-label">{t("today")}</div></span></div>
-        <div className="stat-item"><GemIcon size={24} color="var(--color-primary)" /><span><span className="value">{savedCount}</span><div className="stat-label">{t("saved")}</div></span></div>
+        <div className="stat-item"><BooksIcon size={24} /><span><span className="value">{totalWords}</span><div className="stat-label">{t("totalWords")}</div></span></div>
+        <div className="stat-item"><FlameSmallIcon size={24} /><span><span className="value">{streak}</span><div className="stat-label">{t("daysStreak")}</div></span></div>
+        <div className="stat-item"><TrophyIcon size={24} /><span><span className="value">{usage.level}</span><div className="stat-label">{t("level")}</div></span></div>
       </div>
     </div>
   );
