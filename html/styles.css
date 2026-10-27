@@ -2113,3 +2113,46 @@ select:focus,
 .dictee-game.results-box.ui-card { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-xl); box-shadow: var(--elev-2); }
 @media (max-width: 480px) { .dictee-game .dictee-textarea.ui-input { min-height: 120px; } }
 @media (prefers-reduced-motion: reduce) { .flashcard-flip-inner { transition: none; } .spelling-game .spelling-input.ui-input.correct, .spelling-game .spelling-input.ui-input.wrong { animation: none; } }
+
+/* SADAX navbar mark and wordmark */
+.site-logo--boxed > .brand-logo-mark { display: block; width: 40px; height: 40px; flex-shrink: 0; }
+.site-logo h1.brand-wordmark--navbar {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #C9A24D;
+  -webkit-text-fill-color: #C9A24D;
+  background: none;
+  text-shadow: none;
+  filter: none;
+  padding-bottom: 0;
+}
+.site-logo h1.brand-wordmark--navbar::after { display: none; }
+
+/* Progressive scroll reveal; content remains visible when JavaScript is unavailable. */
+html.js .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition-delay: var(--delay, 0s);
+  animation: none;
+}
+html.js .reveal.visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal, html.js .reveal.visible { opacity: 1; transform: none; transition: none; animation: none; }
+}
+
+/* Arabic flashcard text is isolated from the card's flip direction. */
+.flashcard-face .card-word[lang|="ar"],
+.flashcard-face .card-translation[lang|="ar"] { font-family: var(--font-arabic); font-synthesis: none; direction: rtl; unicode-bidi: isolate; }
+@media (max-width: 768px) {
+  .flashcard-game .flashcard-flip-inner { transform: none !important; transform-style: flat; transition: none; }
+  .flashcard-game .flashcard-face { transform: none !important; backface-visibility: visible; -webkit-backface-visibility: visible; transition: opacity 180ms ease, visibility 180ms ease; }
+  .flashcard-game .flashcard-front { opacity: 1; visibility: visible; }
+  .flashcard-game .flashcard-back { opacity: 0; visibility: hidden; }
+  .flashcard-game .dual-card.is-flipped .flashcard-front { opacity: 0; visibility: hidden; }
+  .flashcard-game .dual-card.is-flipped .flashcard-back { opacity: 1; visibility: visible; }
+}
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .flashcard-game .flashcard-face { transition: none; }
+}

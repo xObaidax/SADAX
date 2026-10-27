@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs><linearGradient id="ring" x1="20" y1="14" x2="108" y2="102" gradientUnits="userSpaceOnUse"><stop stop-color="#7B6FD4"/><stop offset="1" stop-color="#9D92E0"/></linearGradient></defs>
+  <path d="M64 14C88.3 14 108 33.7 108 58S88.3 102 64 102C55 102 46.8 99.3 40 95L20 109L25 84C21.8 76.1 20 67.3 20 58C20 33.7 39.7 14 64 14Z" stroke="url(#ring)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 59L72 46L88 35L76 53Z" fill="#C9A24D"/>
+  <path d="M64 59L52 46L40 35L55 56Z" fill="#7B6FD4"/>
+  <path d="M64 59L52 72L40 83L55 62Z" fill="#7B6FD4"/>
+  <path d="M64 59L72 72L88 83L76 62Z" fill="#7B6FD4"/>
+  <circle cx="64" cy="59" r="3.5" fill="#C9A24D"/>
+</svg>

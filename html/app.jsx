@@ -110,7 +110,10 @@ function AppContent() {
   const [currentSetId, setCurrentSetId] = useState(sets[0]?.id || null);
   const [playAllFiles, setPlayAllFiles] = useState(true);
   const [selectedFileIds, setSelectedFileIds] = useState([]);
-  const [numberOfWords, setNumberOfWords] = useState(1);
+  const [numberOfWords, setNumberOfWords] = useState(() => {
+    const stored = Number(localStorage.getItem("sadax_daily_words_count"));
+    return Number.isFinite(stored) ? Math.min(10, Math.max(1, Math.trunc(stored))) : 1;
+  });
   const [revealedCards, setRevealedCards] = useState([]);
   const [gameType, setGameType] = useState("flashcards");
   const [gameKey, setGameKey] = useState(0);
@@ -135,6 +138,63 @@ function AppContent() {
   const [logoutPending, setLogoutPending] = useState(false);
   const [logoutExiting, setLogoutExiting] = useState(false);
   const [settingsTab, setSettingsTab] = useState("general");
+  useEffect(() => { localStorage.setItem("sadax_daily_words_count", String(numberOfWords)); }, [numberOfWords]);
+  useEffect(() => {
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    let stopScrolling = () => {};
+    const startScrolling = () => {
+      if (reducedMotion?.matches || !window.Lenis || !window.gsap) return;
+      const gsap = window.gsap;
+      const lenis = new window.Lenis({
+        duration: 0.8,
+        easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+        smoothTouch: false,
+        syncTouch: false
+      });
+      const tick = time => lenis.raf(time * 1000);
+      gsap.ticker.add(tick);
+      stopScrolling = () => {
+        gsap.ticker.remove(tick);
+        lenis.destroy();
+      };
+    };
+    startScrolling();
+    const onMotionChange = () => { stopScrolling(); stopScrolling = () => {}; startScrolling(); };
+    reducedMotion?.addEventListener?.("change", onMotionChange);
+    return () => { reducedMotion?.removeEventListener?.("change", onMotionChange); stopScrolling(); };
+  }, []);
+  useEffect(() => {
+    const root = document.getElementById("root");
+    if (!root) return;
+    const observer = "IntersectionObserver" in window
+      ? new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add("visible");
+            observer.unobserve(entry.target);
+          });
+        }, { threshold: 0.15 })
+      : null;
+    const tracked = new Set();
+    const syncReveals = () => {
+      root.querySelectorAll(".reveal").forEach(element => {
+        if (tracked.has(element)) return;
+        tracked.add(element);
+        if (observer) observer.observe(element);
+        else element.classList.add("visible");
+      });
+      for (const element of tracked) {
+        if (element.isConnected) continue;
+        observer?.unobserve(element);
+        tracked.delete(element);
+      }
+    };
+    const mutations = new MutationObserver(syncReveals);
+    mutations.observe(root, { childList: true, subtree: true });
+    syncReveals();
+    return () => { mutations.disconnect(); observer?.disconnect(); };
+  }, []);
   const loadWords = async (account, localSets = sets) => {
     let rows = await wordRequest(AUTH_ENDPOINTS.words, "GET");
     const owner = localStorage.getItem("vocaflow_word_owner");
@@ -660,8 +720,8 @@ function AppContent() {
         <div>
           <div className="topbar">
             <div className="site-logo site-logo--boxed" onClick={() => { setView("home"); setMainTab("home"); }}>
-              <span className="brand-icon-box"><LogoMark size={26} /></span>
-              <h1 className="brand-wordmark"><span className="brand-h">S</span>ADAX</h1>
+              <img className="brand-logo-mark" src="assets/logo-mark.svg" alt="" width="40" height="40" />
+              <h1 className="brand-wordmark brand-wordmark--navbar">SADAX</h1>
               <div className="tagline">{t("tagline")}</div>
             </div>
             <div className="topbar-actions">
@@ -671,17 +731,17 @@ function AppContent() {
           {mainTab === 'home' && (
             <div className="tab-content">
               <ProfileCard variant="home" user={user} usage={usage} />
-              <div className="home-stats-strip">
+              <div className="home-stats-strip reveal" style={{ '--index': 1, '--delay': '0.1s' }}>
                 <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 1 }}><strong>{totalWords}</strong><span>{t("totalWords")}</span></div>
                 <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 2 }}><strong>{homeStreak}</strong><span>{t("daysStreak")}</span></div>
                 <div className="home-stat ui-card-compact stagger-enter" style={{ '--index': 3 }}><strong>{usage.level}</strong><span>{t("level")}</span></div>
               </div>
-              <section className="home-progress ui-card stagger-enter" style={{ '--index': 4 }}>
+              <section className="home-progress ui-card reveal" style={{ '--index': 4, '--delay': '0.2s' }}>
                 <h3>{t("home_progress")}</h3>
                 <div className="home-progress-track" role="progressbar" aria-valuenow={Math.min(todayReviewed, dailyGoal)} aria-valuemin="0" aria-valuemax={dailyGoal} aria-label={t("home_progress")}><div className="home-progress-fill" style={{ width: `${Math.min(100, todayReviewed / dailyGoal * 100)}%` }} /></div>
                 <p>{t("home_progress_count").replace("{n}", todayReviewed).replace("{max}", dailyGoal)}</p>
               </section>
-              <section className="home-daily-word ui-card stagger-enter" style={{ '--index': 5 }}>
+              <section className="home-daily-word ui-card reveal" style={{ '--index': 5, '--delay': '0.3s' }}>
                 <h3>{t("home_daily_words_title")}</h3>
                 <p className="home-daily-hint" id="home-daily-hint">{t("home_daily_words_hint")}</p>
                 <div className="home-daily-controls">
@@ -710,7 +770,7 @@ function AppContent() {
                   </div>
                 )}
               </section>
-              <div className="stagger-enter" style={{ '--index': 6 }}><Sanctuary count={savedWords.length} onPlay={() => startGame("saved")} /></div>
+              <div className="reveal" style={{ '--index': 6, '--delay': '0.3s' }}><Sanctuary count={savedWords.length} onPlay={() => startGame("saved")} /></div>
             </div>
           )}
           {mainTab === 'traduire' && (<TranslatePage draft={translatorDraft} setDraft={setTranslatorDraft} />)}
@@ -756,7 +816,7 @@ function AppContent() {
             <div className="tab-content settings-page">
               <h2 className="main-page-title settings-page-title">{t("settings_page_title")}</h2>
               <input type="file" id="avatar-upload2" accept="image/*" style={{ display: "none" }} onChange={e => handleAvatarUpload(e.target.files[0])} />
-              <section className="settings-section settings-account ui-card stagger-enter" style={{ '--index': 0, '--stagger-step': '60ms' }}>
+              <section className="settings-section settings-account ui-card reveal" style={{ '--index': 0, '--stagger-step': '60ms', '--delay': '0.1s' }}>
                 <h3>{t("settings_account")}</h3>
                 <ProfileCard user={user} usage={usage} totalWords={totalWords} streak={homeStreak} onAvatarClick={() => document.getElementById("avatar-upload2").click()} />
                 {!user ? (
@@ -768,7 +828,7 @@ function AppContent() {
                    </div>
                 )}
               </section>
-              <section className="settings-section ui-card stagger-enter" style={{ '--index': 1, '--stagger-step': '60ms' }}>
+              <section className="settings-section ui-card reveal" style={{ '--index': 1, '--stagger-step': '60ms', '--delay': '0.2s' }}>
                 <h3>{t("settings_appearance_language")}</h3>
                 <div className="theme-toggle-row ui-card-compact" role="switch" aria-checked={theme === "dark"} aria-label={theme === "light" ? t("darkMode") : t("lightMode")} tabIndex={0} onClick={toggleTheme} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } }}>
                   <span className="theme-toggle-label">{theme === "light" ? <MoonIcon size={20} /> : <SunIcon size={20} />}{theme === "light" ? t("darkMode") : t("lightMode")}</span>

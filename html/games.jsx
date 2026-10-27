@@ -80,6 +80,8 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
   if (!card) return (<div className="glass results-box"><p>{t("noWords")}</p><button type="button" className="btn btn-primary" onClick={onExit}>{t("home")}</button></div>);
   const l1 = getLang(cardLang1);
   const l2 = getLang(cardLang2);
+  const frontIsArabic = /^ar(?:-|$)/i.test(cardLang1 || "");
+  const backIsArabic = /^ar(?:-|$)/i.test(cardLang2 || "");
   const answer = (ok) => {
     if (isAnswering) return;
     setIsAnswering(true);
@@ -153,7 +155,7 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
         <div
           className={`dual-card dual-card-french ${showTranslation ? 'is-flipped' : ''}`}
           dir="ltr"
-          data-flip-dir={l2.dir}
+          data-flip-dir={backIsArabic ? "rtl" : l2.dir}
           role="button"
           tabIndex={0}
           aria-label={`${t("tapToFlip")}. ${t("correct")} إلى اليمين، ${t("wrong")} إلى اليسار`}
@@ -180,12 +182,12 @@ function FlashcardsGame({ set, savedIds, onToggleSaved, onFinish, onExit, voiceS
             <div className="flashcard-flip-inner">
               <div className="flashcard-face flashcard-front" aria-hidden={showTranslation}>
                 <div className="card-lang-label"><UiIcon name="globe" size={15} /> {l1.name}</div>
-                <div className="card-word" dir={l1.dir} lang={cardLang1}>{card.word}</div>
+                <div className="card-word" dir={frontIsArabic ? "rtl" : l1.dir} lang={frontIsArabic ? "ar" : cardLang1}>{card.word}</div>
                 <div className="card-hint"><SparkleIcon size={16} /> {t("tapToFlip")}</div>
               </div>
               <div className="flashcard-face flashcard-back" aria-hidden={!showTranslation}>
                 <div className="card-lang-label"><UiIcon name="globe" size={15} /> {l2.name}</div>
-                <div className="card-translation" dir={l2.dir} lang={cardLang2}>{card.translation}</div>
+                <div className="card-translation" dir={backIsArabic ? "rtl" : l2.dir} lang={backIsArabic ? "ar" : cardLang2}>{card.translation}</div>
                 <div className="card-hint"><SparkleIcon size={16} /> {t("tapToFlip")}</div>
               </div>
             </div>

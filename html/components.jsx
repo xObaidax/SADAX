@@ -175,19 +175,19 @@ function ActivityView({ usage, totalWords, masteredCount, stats }) {
     <div className="activity-view">
       <div className="stats-header-row"><div><h2 className="main-page-title"><StatsIcon active={true} /> {t("stats")}</h2><p className="stats-subtitle">{t("stats_subtitle")}</p></div></div>
       <div className="stats-totals-grid stats-kpi-grid">
-        <div className="total-card ui-card ui-card-compact stagger-enter" style={{ '--index': 0, '--stagger-step': '60ms' }}><div className="total-icon"><BooksIcon /></div><div className="total-value">{totalWords}</div><div className="total-label">{t("totalWords")}</div></div>
-        <div className="total-card ui-card ui-card-compact stagger-enter" style={{ '--index': 1, '--stagger-step': '60ms' }}><div className="total-icon"><FlameSmallIcon /></div><div className="total-value">{streak}</div><div className="total-label">{t("streak")}</div></div>
-        <div className="total-card ui-card ui-card-compact stagger-enter" style={{ '--index': 2, '--stagger-step': '60ms' }}><div className="total-icon"><TrophyIcon /></div><div className="total-value">{bestStreak}</div><div className="total-label">{t("stats_best_streak")}</div></div>
-        <div className="total-card ui-card ui-card-compact stagger-enter" style={{ '--index': 3, '--stagger-step': '60ms' }}><div className="total-icon"><TargetIcon /></div><div className="total-value">{masteryPercent}%</div><div className="total-label">{t("stats_mastery")}</div></div>
+        <div className="total-card ui-card ui-card-compact reveal" style={{ '--index': 0, '--stagger-step': '60ms', '--delay': '0s' }}><div className="total-icon"><BooksIcon /></div><div className="total-value">{totalWords}</div><div className="total-label">{t("totalWords")}</div></div>
+        <div className="total-card ui-card ui-card-compact reveal" style={{ '--index': 1, '--stagger-step': '60ms', '--delay': '0.1s' }}><div className="total-icon"><FlameSmallIcon /></div><div className="total-value">{streak}</div><div className="total-label">{t("streak")}</div></div>
+        <div className="total-card ui-card ui-card-compact reveal" style={{ '--index': 2, '--stagger-step': '60ms', '--delay': '0.2s' }}><div className="total-icon"><TrophyIcon /></div><div className="total-value">{bestStreak}</div><div className="total-label">{t("stats_best_streak")}</div></div>
+        <div className="total-card ui-card ui-card-compact reveal" style={{ '--index': 3, '--stagger-step': '60ms', '--delay': '0.3s' }}><div className="total-icon"><TargetIcon /></div><div className="total-value">{masteryPercent}%</div><div className="total-label">{t("stats_mastery")}</div></div>
       </div>
       {!hasActivity && (
-        <div className="stats-empty-state stagger-enter" style={{ '--index': 4 }}>
+        <div className="stats-empty-state reveal" style={{ '--index': 4, '--delay': '0.1s' }}>
           <div className="stats-empty-icon"><StatsIcon active={false} /></div>
           <div className="stats-empty-title">{t("noActivity")}</div>
           <div className="stats-empty-desc">{t("noActivityDesc")}</div>
         </div>
       )}
-          <div className="stats-week-strip ui-card stagger-enter" style={{ '--index': 4 }}>
+           <div className="stats-week-strip ui-card reveal" style={{ '--index': 4, '--delay': '0.1s' }}>
             <h3 className="stats-section-title">{t("stats_weekly")}</h3>
             <div className="week-summary">
               <span className="week-summary-item"><BooksIcon size={16} /> {weekReviewedTotal} {t("reviewedWords")}</span>
@@ -207,8 +207,8 @@ function ActivityView({ usage, totalWords, masteredCount, stats }) {
               {t("annualDetails")}
             </button>
           </div>
-          <section className="stats-monthly ui-card stagger-enter" style={{ '--index': 5 }}><h3 className="stats-section-title">{t("stats_monthly")}</h3>{renderMonthCards()}</section>
-          <div className="stats-week-strip ui-card stagger-enter" style={{ marginTop: 16, '--index': 5 }}>
+           <section className="stats-monthly ui-card reveal" style={{ '--index': 5, '--delay': '0.2s' }}><h3 className="stats-section-title">{t("stats_monthly")}</h3>{renderMonthCards()}</section>
+          <div className="stats-week-strip ui-card reveal" style={{ marginTop: 16, '--index': 5, '--delay': '0.2s' }}>
             <div className="stat-row"><span className="stat-row-label"><BookIcon size={16} color="var(--color-primary)" /> {t("totalWords")}</span><span className="stat-row-value">{totalWords}</span></div>
             <div className="stat-row"><span className="stat-row-label"><GemIcon size={16} color="var(--color-primary)" /> {t("wordsAdded")}</span><span className="stat-row-value">{stats.wordsAdded || 0}</span></div>
             <div className="stat-row"><span className="stat-row-label"><GamepadIcon size={16} color="var(--color-primary)" /> {t("gamesPlayed")}</span><span className="stat-row-value">{stats.gamesPlayed || 0}</span></div>
@@ -217,7 +217,7 @@ function ActivityView({ usage, totalWords, masteredCount, stats }) {
             <div className="stat-row"><span className="stat-row-label"><TargetIcon size={16} /> {t("accuracy")}</span><span className="stat-row-value">{accuracy}%</span></div>
             <div className="stat-row"><span className="stat-row-label"><ClockIcon size={16} /> {t("totalTime")}</span><span className="stat-row-value">{usage.fmt(usage.total)}</span></div>
           </div>
-          <section className="stats-year-progress ui-card stagger-enter" style={{ '--index': 6 }}><div className="stats-year-header"><h3>{t("stats_year_progress")} · {year}</h3><strong>{yearProgress}%</strong></div><div className="stats-year-track" role="progressbar" aria-label={t("stats_year_progress")} aria-valuemin="0" aria-valuemax="100" aria-valuenow={yearProgress}><div style={{ width: `${yearProgress}%` }} /></div><p>{yearReviewed} {t("reviewedWords")} · {yearAdded} {t("wordsAdded")}</p></section>
+          <section className="stats-year-progress ui-card reveal" style={{ '--index': 6, '--delay': '0.3s' }}><div className="stats-year-header"><h3>{t("stats_year_progress")} · {year}</h3><strong>{yearProgress}%</strong></div><div className="stats-year-track" role="progressbar" aria-label={t("stats_year_progress")} aria-valuemin="0" aria-valuemax="100" aria-valuenow={yearProgress}><div style={{ width: `${yearProgress}%` }} /></div><p>{yearReviewed} {t("reviewedWords")} · {yearAdded} {t("wordsAdded")}</p></section>
       {sheet.open && (
         <div className="bottom-sheet-overlay" onClick={() => { setSheet({ ...sheet, open: false }); setSelectedDayData(null); }}>
           <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
