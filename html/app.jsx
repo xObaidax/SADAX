@@ -999,8 +999,8 @@ function AppContent() {
         <div className={`modal-overlay auth-overlay ${authClosing ? "auth-closing" : ""}`} onClick={resetOtpModal}>
           <div className="auth-card" role="dialog" aria-modal="true" aria-label="Connexion SADAX" dir="ltr" onClick={e => e.stopPropagation()}>
             <div className="auth-brand">
-              <div className="auth-mark"><LogoMark size={49} /></div>
-              <h3>{otpPurpose === "backup" ? t("backupEmail") : <>Bienvenue sur <span className="brand-wordmark">SADAX</span></>}</h3>
+              <div className="auth-mark"><img src="assets/logo-mark.svg" alt="SADAX" style={{ width: 56, height: 56, margin: '0 auto' }} /></div>
+              <h3 className="text-glass">{otpPurpose === "backup" ? t("backupEmail") : <>Bienvenue sur <span className="brand-wordmark">SADAX</span></>}</h3>
               <p className="auth-subtitle">{otpPurpose === "backup" ? t("backupEmailIntro") : "Connectez-vous pour sauvegarder vos progrès"}</p>
               <div className="auth-tagline">{t("tagline")}</div>
             </div>

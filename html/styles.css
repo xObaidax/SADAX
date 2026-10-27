@@ -2156,3 +2156,37 @@ html.js .reveal.visible { opacity: 1; transform: none; }
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
   .flashcard-game .flashcard-face { transition: none; }
 }
+
+/* Glass text for the auth heading and main page titles. */
+.text-glass,
+.main-page-title.main-page-title,
+.home-welcome-title,
+.games-header-title.main-page-title,
+.auth-overlay .auth-card h3.text-glass {
+  background: linear-gradient(135deg, #FFFFFF 0%, #A5A8C0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 15px rgba(255, 255, 255, 0.15);
+}
+
+/* Light surfaces need their existing dark heading colors for contrast. */
+[data-theme="light"] .main-page-title {
+  background: none;
+  color: var(--color-primary);
+  -webkit-text-fill-color: var(--color-primary);
+  text-shadow: none;
+}
+[data-theme="light"] .home-welcome-title,
+[data-theme="light"] .auth-overlay .auth-card h3.text-glass {
+  background: none;
+  color: var(--color-text);
+  -webkit-text-fill-color: var(--color-text);
+  text-shadow: none;
+}
+[data-theme="light"] .auth-overlay .auth-card h3.text-glass .brand-wordmark {
+  background: none;
+  color: var(--color-primary);
+  -webkit-text-fill-color: var(--color-primary);
+}
