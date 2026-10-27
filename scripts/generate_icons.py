@@ -2,7 +2,7 @@ import os
 from PIL import Image, ImageDraw
 import svg2png_py
 
-LOGO_PATH = os.path.join("html", "assets", "sadax-logo.svg")
+LOGO_PATH = os.path.join("html", "assets", "logo-mark.svg")
 OUTPUT_DIR = os.path.join("html", "assets", "icons")
 
 def svg_to_pil(svg_path, size):
