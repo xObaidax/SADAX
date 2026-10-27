@@ -21,7 +21,12 @@ def serve_frontend(request):
 
 def serve_html_asset(request, path):
     response = serve_static_file(request, path, document_root=settings.BASE_DIR / 'html')
-    if path.endswith('.jsx'):
+    if path == 'manifest.json':
+        response['Content-Type'] = 'application/json'
+    elif path == 'sw.js':
+        response['Content-Type'] = 'application/javascript'
+        response['Cache-Control'] = 'no-cache'
+    elif path.endswith('.jsx'):
         response['Content-Type'] = 'application/javascript'
     return response
 
@@ -49,7 +54,7 @@ urlpatterns = [
     path('', serve_frontend),
     path('html/index.html', serve_frontend),
     re_path(
-        r'^(?:html/)?(?P<path>(styles\.css|app\.jsx|components\.jsx|games\.jsx|i18n\.jsx|assets/.+|vendor/.+|favicon\.ico|logo\.svg))$',
+        r'^(?:html/)?(?P<path>(manifest\.json|sw\.js|styles\.css|app\.jsx|components\.jsx|games\.jsx|i18n\.jsx|assets/.+|vendor/.+|favicon\.ico|logo\.svg))$',
         serve_html_asset,
     ),
 ]

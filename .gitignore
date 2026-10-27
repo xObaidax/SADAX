@@ -13,4 +13,5 @@ staticfiles/
 
 debug.log
 screenshots/
-scripts/
+scripts/*
+!scripts/generate_icons.py

@@ -138,7 +138,24 @@ function AppContent() {
   const [logoutPending, setLogoutPending] = useState(false);
   const [logoutExiting, setLogoutExiting] = useState(false);
   const [settingsTab, setSettingsTab] = useState("general");
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
   useEffect(() => { localStorage.setItem("sadax_daily_words_count", String(numberOfWords)); }, [numberOfWords]);
+  useEffect(() => {
+    const handleBeforeInstallPrompt = event => {
+      event.preventDefault();
+      setDeferredPrompt(event);
+    };
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      toast(t("settings_app_installed"), "success");
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, [toast, t]);
   useEffect(() => {
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     let stopScrolling = () => {};
@@ -152,11 +169,13 @@ function AppContent() {
         smoothTouch: false,
         syncTouch: false
       });
+      window.lenisInstance = lenis;
       const tick = time => lenis.raf(time * 1000);
       gsap.ticker.add(tick);
       stopScrolling = () => {
         gsap.ticker.remove(tick);
         lenis.destroy();
+        window.lenisInstance = null;
       };
     };
     startScrolling();
@@ -164,6 +183,13 @@ function AppContent() {
     reducedMotion?.addEventListener?.("change", onMotionChange);
     return () => { reducedMotion?.removeEventListener?.("change", onMotionChange); stopScrolling(); };
   }, []);
+  useEffect(() => {
+    if (window.lenisInstance) {
+      window.lenisInstance.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [mainTab, view]);
   useEffect(() => {
     const root = document.getElementById("root");
     if (!root) return;
@@ -656,6 +682,22 @@ function AppContent() {
     reader.onerror = () => toast(t("errorOccurred"), "error");
     reader.readAsDataURL(file);
   };
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      try {
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      } catch (error) {
+        console.warn("[SADAX PWA] Install prompt failed", error);
+        toast(t("settings_app_already_installed"), "info");
+      } finally {
+        setDeferredPrompt(null);
+      }
+      return;
+    }
+    const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) && !window.MSStream;
+    toast(t(isIOS ? "settings_app_ios_instructions" : "settings_app_already_installed"), "info");
+  };
   const handleExport = () => {
     try {
       const data = { version: "10.0", sets, user, savedIds, voiceSettings, stats, exportedAt: new Date().toISOString() };
@@ -723,9 +765,6 @@ function AppContent() {
               <img className="brand-logo-mark" src="assets/logo-mark.svg" alt="" width="40" height="40" />
               <h1 className="brand-wordmark brand-wordmark--navbar">SADAX</h1>
               <div className="tagline">{t("tagline")}</div>
-            </div>
-            <div className="topbar-actions">
-              {user && <AccountNav user={user} onLogout={() => setLogoutConfirm(true)} />}
             </div>
           </div>
           {mainTab === 'home' && (
@@ -835,6 +874,10 @@ function AppContent() {
                   <div className={`theme-toggle-switch ${theme === "dark" ? "active" : ""}`} />
                 </div>
                 <div className="field settings-preference-row"><label htmlFor="settings-language"><UiIcon name="globe" size={18} /> {t("language")}</label><select id="settings-language" className="ui-input" value={locale} onChange={e => setLocale(e.target.value)}>{langs.map(l => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}</select></div>
+              </section>
+              <section className="settings-section ui-card reveal" style={{ '--index': 2, '--stagger-step': '60ms', '--delay': '0.3s' }}>
+                <h3>{t("settings_app_section")}</h3>
+                <button type="button" className="ui-btn ui-btn-primary" onClick={handleInstallClick}><UiIcon name="download" /> {t("settings_app_download")}</button>
               </section>
             </div>
           )}

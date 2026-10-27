@@ -276,6 +276,12 @@ const SETTINGS_PAGE_COPY = {
   en: { settings_page_title: "Settings", settings_appearance: "Appearance", settings_appearance_language: "Appearance & Language", settings_language: "Language", settings_audio: "Audio", settings_account: "Account", settings_data: "Data" }
 };
 Object.keys(SETTINGS_PAGE_COPY).forEach(code => Object.assign(LOCALES[code], SETTINGS_PAGE_COPY[code]));
+const SETTINGS_APP_COPY = {
+  ar: { settings_app_section: "التطبيق", settings_app_download: "تثبيت التطبيق", settings_app_ios_instructions: "لتثبيت التطبيق على iOS: اضغط على مشاركة ثم اختر «إضافة إلى الشاشة الرئيسية».", settings_app_already_installed: "التطبيق مثبت بالفعل أو أن متصفحك لا يدعم التثبيت.", settings_app_installed: "تم تثبيت التطبيق بنجاح." },
+  fr: { settings_app_section: "Application", settings_app_download: "Télécharger l'application", settings_app_ios_instructions: "Pour installer l'app sur iOS : Appuyez sur Partager puis « Sur l'écran d'accueil ».", settings_app_already_installed: "L'application est déjà installée ou non supportée par ce navigateur.", settings_app_installed: "Application installée avec succès." },
+  en: { settings_app_section: "Application", settings_app_download: "Install the app", settings_app_ios_instructions: "To install on iOS: tap Share, then Add to Home Screen.", settings_app_already_installed: "The app is already installed or this browser does not support installation.", settings_app_installed: "App installed successfully." }
+};
+Object.keys(SETTINGS_APP_COPY).forEach(code => Object.assign(LOCALES[code], SETTINGS_APP_COPY[code]));
 const AUTH_GOOGLE_STATUS_COPY = {
   ar: { authGoogleLoading: "جاري تحميل تسجيل الدخول عبر Google...", authGoogleUnavailable: "تسجيل الدخول عبر Google غير متاح الآن." },
   fr: { authGoogleLoading: "Chargement de la connexion Google...", authGoogleUnavailable: "La connexion Google est indisponible pour le moment." },
